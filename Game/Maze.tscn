@@ -1,0 +1,214 @@
+[gd_scene format=4 uid="uid://c6sia3l0qm47m"]
+
+[ext_resource type="Script" uid="uid://beev81sdhp1tp" path="res://Game/Foreground.cs" id="1_evoqg"]
+[ext_resource type="TileSet" uid="uid://dd81l2t7r6247" path="res://Game/MazeTileSet.tres" id="1_gghi0"]
+[ext_resource type="Script" uid="uid://c0a76cffcugo1" path="res://Game/agent/WallFollowingAgent.cs" id="2_wall_agent"]
+[ext_resource type="Script" uid="uid://ccn3ry7j3s1vv" path="res://Game/MazeInfoPanel.cs" id="3_info_panel"]
+[ext_resource type="Script" uid="uid://dsdmckhx4ypoq" path="res://Game/agent/PledgeAlgorithmAgent.cs" id="4_pledge_agent"]
+[ext_resource type="Script" uid="uid://b8um62v43mws1" path="res://Game/agent/TremauxAlgoritmAgent.cs" id="5_tremaux_agent"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_info_panel"]
+bg_color = Color(0.055, 0.075, 0.11, 0.96)
+border_width_bottom = 2
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+
+[node name="Maze" type="Node2D" unique_id=1879914612]
+
+[node name="ColorRect" type="ColorRect" parent="." unique_id=1734094746]
+modulate = Color(0, 0, 0, 1)
+offset_right = 857.0
+offset_bottom = 832.0
+
+[node name="foreground" type="TileMapLayer" parent="." unique_id=1168388414]
+tile_map_data = PackedByteArray("AAAAAAAAAgAAAAAAAQADAAAAAgAAAAAAAQAEAAAAAgAAAAAAAQAFAAAAAgAAAAAAAQAGAAAAAgAAAAAAAQACAAAAAgAAAAAAAQAHAAAAAgAAAAAAAQAIAAAAAgAAAAAAAQAJAAAAAgAAAAAAAQAKAAAAAgAAAAAAAQALAAAAAgAAAAAAAQAMAAAAAgAAAAAAAQANAAAAAgAAAAAAAQAOAAAAAgAAAAAAAQAPAAAAAgAAAAAAAQAAAAEAAgAAAAAAAQAAAAIAAgAAAAAAAQAAAAMAAgAAAAAAAQAAAAQAAgAAAAAAAQAAAAUAAgAAAAAAAQAAAAYAAgAAAAAAAQAAAAcAAgAAAAAAAQAAAAgAAgAAAAAAAQAAAAkAAgAAAAAAAQAAAAoAAgAAAAAAAQAAAAsAAgAAAAAAAQAAAAwAAgAAAAAAAQAAAA0AAgAAAAAAAQAAAA4AAgAAAAAAAQAAAA8AAgAAAAAAAQABAAwAAgAAAAAAAQABAA0AAgAAAAAAAQABAA4AAgAAAAAAAQABAA8AAgAAAAAAAQACAAIAAgAAAAAAAQACAAQAAgAAAAAAAQACAAUAAgAAAAAAAQACAAgAAgAAAAAAAQACAAkAAgAAAAAAAQACAAoAAgAAAAAAAQACAAwAAgAAAAAAAQACAA0AAgAAAAAAAQACAA4AAgAAAAAAAQACAA8AAgAAAAAAAQADAAIAAgAAAAAAAQADAAMAAgAAAAAAAQADAAQAAgAAAAAAAQADAAUAAgAAAAAAAQADAAgAAgAAAAAAAQADAAkAAgAAAAAAAQADAAoAAgAAAAAAAQADAAwAAgAAAAAAAQADAA0AAgAAAAAAAQADAA4AAgAAAAAAAQADAA8AAgAAAAAAAQAEAAUAAgAAAAAAAQAEAAoAAgAAAAAAAQAEAAwAAgAAAAAAAQAEAA0AAgAAAAAAAQAEAA4AAgAAAAAAAQAEAA8AAgAAAAAAAQAFAAIAAgAAAAAAAQAFAAQAAgAAAAAAAQAFAAkAAgAAAAAAAQAFAAoAAgAAAAAAAQAFAAwAAgAAAAAAAQAFAA0AAgAAAAAAAQAFAA4AAgAAAAAAAQAFAA8AAgAAAAAAAQAGAAIAAgAAAAAAAQAGAAMAAgAAAAAAAQAGAAQAAgAAAAAAAQAGAAUAAgAAAAAAAQAGAAcAAgAAAAAAAQAGAAkAAgAAAAAAAQAGAAoAAgAAAAAAAQAGAAwAAgAAAAAAAQAGAA0AAgAAAAAAAQAGAA4AAgAAAAAAAQAGAA8AAgAAAAAAAQAHAAIAAgAAAAAAAQAHAAcAAgAAAAAAAQAHAAgAAgAAAAAAAQAHAAwAAgAAAAAAAQAHAA0AAgAAAAAAAQAHAA4AAgAAAAAAAQAHAA8AAgAAAAAAAQAIAAIAAgAAAAAAAQAIAAMAAgAAAAAAAQAIAAQAAgAAAAAAAQAIAAUAAgAAAAAAAQAIAAYAAgAAAAAAAQAIAAgAAgAAAAAAAQAIAAkAAgAAAAAAAQAIAAoAAgAAAAAAAQAIAAwAAgAAAAAAAQAIAA0AAgAAAAAAAQAIAA4AAgAAAAAAAQAIAA8AAgAAAAAAAQAJAAYAAgAAAAAAAQAJAAgAAgAAAAAAAQAJAAoAAgAAAAAAAQAJAAwAAgAAAAAAAQAJAA0AAgAAAAAAAQAJAA4AAgAAAAAAAQAJAA8AAgAAAAAAAQAKAAEAAgAAAAAAAQAKAAIAAgAAAAAAAQAKAAMAAgAAAAAAAQAKAAQAAgAAAAAAAQAKAAUAAgAAAAAAAQAKAAYAAgAAAAAAAQAKAAgAAgAAAAAAAQAKAAoAAgAAAAAAAQAKAAwAAgAAAAAAAQAKAA0AAgAAAAAAAQAKAA4AAgAAAAAAAQAKAA8AAgAAAAAAAQALAAEAAgAAAAAAAQALAAIAAgAAAAAAAQALAAwAAgAAAAAAAQALAA0AAgAAAAAAAQALAA4AAgAAAAAAAQALAA8AAgAAAAAAAQAMAAEAAgAAAAAAAQAMAAIAAgAAAAAAAQAMAAMAAgAAAAAAAQAMAAQAAgAAAAAAAQAMAAUAAgAAAAAAAQAMAAYAAgAAAAAAAQAMAAcAAgAAAAAAAQAMAAgAAgAAAAAAAQAMAAkAAgAAAAAAAQAMAAoAAgAAAAAAAQAMAAwAAgAAAAAAAQAMAA0AAgAAAAAAAQAMAA4AAgAAAAAAAQAMAA8AAgAAAAAAAQANAAEAAgAAAAAAAQANAAIAAgAAAAAAAQANAAMAAgAAAAAAAQANAAQAAgAAAAAAAQANAAUAAgAAAAAAAQANAAYAAgAAAAAAAQANAAcAAgAAAAAAAQANAAgAAgAAAAAAAQANAAkAAgAAAAAAAQANAAoAAgAAAAAAAQANAAwAAgAAAAAAAQANAA0AAgAAAAAAAQANAA4AAgAAAAAAAQANAA8AAgAAAAAAAQAOAAEAAgAAAAAAAQAOAAIAAgAAAAAAAQAOAAMAAgAAAAAAAQAOAAQAAgAAAAAAAQAOAAUAAgAAAAAAAQAOAAYAAgAAAAAAAQAOAAcAAgAAAAAAAQAOAAgAAgAAAAAAAQAOAAkAAgAAAAAAAQAOAAoAAgAAAAAAAQAOAAsAAgAAAAAAAQAOAAwAAgAAAAAAAQAOAA0AAgAAAAAAAQAOAA4AAgAAAAAAAQAOAA8AAgAAAAAAAQAPAAEAAgAAAAAAAQAPAAIAAgAAAAAAAQAPAAMAAgAAAAAAAQAPAAQAAgAAAAAAAQAPAAUAAgAAAAAAAQAPAAYAAgAAAAAAAQAPAAcAAgAAAAAAAQAPAAgAAgAAAAAAAQAPAAkAAgAAAAAAAQAPAAoAAgAAAAAAAQAPAAsAAgAAAAAAAQAPAAwAAgAAAAAAAQAPAA0AAgAAAAAAAQAPAA4AAgAAAAAAAQAPAA8AAgAAAAAAAQACAAcAAgAAAAAAAQADAAcAAgAAAAAAAQAFAAcAAgAAAAAAAQABAAAAAgAAAAAAAQABAAEAAgAAAAAAAQABAAIAAgAAAAAAAQABAAMAAgAAAAAAAQABAAQAAgAAAAAAAQABAAUAAgAAAAAAAQABAAYAAgAAAAAAAQABAAkAAgAAAAAAAQABAAoAAgAAAAAAAQABAAsAAgAAAAAAAQAMAAsAAgAAAAAAAQALAAsAAgAAAAAAAQALAAoAAgAAAAAAAQAHAAoAAgAAAAAAAQAEAAsAAgAAAAAAAQADAAsAAgAAAAAAAQACAAsAAgAAAAAAAQAFAAsAAgAAAAAAAQAGAAsAAgAAAAAAAQAHAAsAAgAAAAAAAQAIAAsAAgAAAAAAAQAJAAsAAgAAAAAAAQAKAAsAAgAAAAAAAQANAAsAAgAAAAAAAQALAAkAAgAAAAAAAQAKAAkAAgAAAAAAAQAJAAkAAgAAAAAAAQAHAAkAAgAAAAAAAQAEAAgAAgAAAAAAAQABAAgAAgAAAAAAAQABAAcAAgAAAAAAAQACAAYAAgAAAAAAAQACAAEAAgAAAAAAAQADAAEAAgAAAAAAAQAEAAEAAgAAAAAAAQAEAAIAAgAAAAAAAQAIAAEAAgAAAAAAAQAHAAEAAgAAAAAAAQAGAAEAAgAAAAAAAQACAAMAAgAAAAAAAQADAAYAAgAAAAAAAQAEAAMAAgAAAAAAAQAEAAQAAgAAAAAAAQAEAAYAAgAAAAAAAQAEAAcAAgAAAAAAAQAEAAkAAgAAAAAAAQAFAAEAAgAAAAAAAQAFAAMAAgAAAAAAAQAFAAUAAgAAAAAAAQAFAAYAAgAAAAAAAQAFAAgAAgAAAAAAAQAGAAYAAgAAAAAAAQAGAAgAAgAAAAAAAQAHAAMAAgAAAAAAAQAHAAQAAgAAAAAAAQAHAAUAAgAAAAAAAQAHAAYAAgAAAAAAAQAIAAcAAgAAAAAAAQAJAAEAAgAAAAAAAQAJAAIAAgAAAAAAAQAJAAMAAgAAAAAAAQAJAAQAAgAAAAAAAQAJAAUAAgAAAAAAAQAJAAcAAgAAAAAAAQAKAAcAAgAAAAAAAQALAAMAAgAAAAAAAQALAAQAAgAAAAAAAQALAAUAAgAAAAAAAQALAAYAAgAAAAAAAQALAAcAAgAAAAAAAQALAAgAAgAAAAAAAQA=")
+tile_set = ExtResource("1_gghi0")
+script = ExtResource("1_evoqg")
+MazeWidth = 48
+MazeHeight = 48
+
+[node name="WallFollowingAgent" type="Node2D" parent="." unique_id=2012615000]
+script = ExtResource("2_wall_agent")
+SecondsPerCell = 0.03
+
+[node name="PledgeAlgorithmAgent" type="Node2D" parent="." unique_id=1227620821]
+script = ExtResource("4_pledge_agent")
+SecondsPerCell = 0.03
+
+[node name="TremauxAlgoritmAgent" type="Node2D" parent="." unique_id=1048594076]
+script = ExtResource("5_tremaux_agent")
+SecondsPerCell = 0.03
+
+[node name="MazeInfoPanel" type="CanvasLayer" parent="." unique_id=589237939]
+layer = 10
+script = ExtResource("3_info_panel")
+
+[node name="PanelContainer" type="PanelContainer" parent="MazeInfoPanel" unique_id=1590098653]
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -336.0
+offset_top = 16.0
+offset_right = -16.0
+offset_bottom = 752.0
+grow_horizontal = 0
+theme_override_styles/panel = SubResource("StyleBoxFlat_info_panel")
+
+[node name="MarginContainer" type="MarginContainer" parent="MazeInfoPanel/PanelContainer" unique_id=92736579]
+layout_mode = 2
+theme_override_constants/margin_left = 18
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 18
+theme_override_constants/margin_bottom = 16
+
+[node name="ScrollContainer" type="ScrollContainer" parent="MazeInfoPanel/PanelContainer/MarginContainer" unique_id=1661344067]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="Content" type="VBoxContainer" parent="MazeInfoPanel/PanelContainer/MarginContainer/ScrollContainer" unique_id=1571419247]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 9
+
+[node name="Title" type="Label" parent="MazeInfoPanel/PanelContainer/MarginContainer/ScrollContainer/Content" unique_id=441766268]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.45, 0.95, 0.72, 1)
+theme_override_font_sizes/font_size = 22
+text = "AGENT ALGORITHMS"
+
+[node name="Subtitle" type="Label" parent="MazeInfoPanel/PanelContainer/MarginContainer/ScrollContainer/Content" unique_id=1543749721]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.6, 0.68, 0.79, 1)
+theme_override_font_sizes/font_size = 11
+text = "LIVE SIMULATION DATA"
+
+[node name="MazeSeparator" type="HSeparator" parent="MazeInfoPanel/PanelContainer/MarginContainer/ScrollContainer/Content" unique_id=2001661170]
+layout_mode = 2
+
+[node name="MazeHeading" type="Label" parent="MazeInfoPanel/PanelContainer/MarginContainer/ScrollContainer/Content" unique_id=944151111]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.45, 0.95, 0.72, 1)
+theme_override_font_sizes/font_size = 14
+text = "MAZE"
+
+[node name="Dimensions" type="Label" parent="MazeInfoPanel/PanelContainer/MarginContainer/ScrollContainer/Content" unique_id=2061951188]
+layout_mode = 2
+text = "Dimensions: —"
+
+[node name="Generator" type="Label" parent="MazeInfoPanel/PanelContainer/MarginContainer/ScrollContainer/Content" unique_id=38395202]
+layout_mode = 2
+text = "Generator: —"
+
+[node name="Seed" type="Label" parent="MazeInfoPanel/PanelContainer/MarginContainer/ScrollContainer/Content" unique_id=2111139113]
+layout_mode = 2
+text = "Seed: —"
+
+[node name="WallSeparator" type="HSeparator" parent="MazeInfoPanel/PanelContainer/MarginContainer/ScrollContainer/Content" unique_id=802290654]
+layout_mode = 2
+
+[node name="WallHeading" type="Label" parent="MazeInfoPanel/PanelContainer/MarginContainer/ScrollContainer/Content" unique_id=1842252235]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.45, 0.95, 0.72, 1)
+theme_override_font_sizes/font_size = 14
+text = "WALL-FOLLOWING AGENT"
+
+[node name="WallStatus" type="Label" parent="MazeInfoPanel/PanelContainer/MarginContainer/ScrollContainer/Content" unique_id=1073599989]
+layout_mode = 2
+text = "Status: —"
+
+[node name="WallPosition" type="Label" parent="MazeInfoPanel/PanelContainer/MarginContainer/ScrollContainer/Content" unique_id=1092438790]
+layout_mode = 2
+text = "Position: —"
+
+[node name="WallSteps" type="Label" parent="MazeInfoPanel/PanelContainer/MarginContainer/ScrollContainer/Content" unique_id=987714713]
+layout_mode = 2
+text = "Steps: —"
+
+[node name="WallElapsed" type="Label" parent="MazeInfoPanel/PanelContainer/MarginContainer/ScrollContainer/Content" unique_id=1766127877]
+layout_mode = 2
+text = "Elapsed: —"
+
+[node name="WallRule" type="Label" parent="MazeInfoPanel/PanelContainer/MarginContainer/ScrollContainer/Content" unique_id=1223067576]
+layout_mode = 2
+text = "Wall rule: —"
+
+[node name="WallSpeed" type="Label" parent="MazeInfoPanel/PanelContainer/MarginContainer/ScrollContainer/Content" unique_id=1250494320]
+layout_mode = 2
+text = "Step interval: —"
+
+[node name="PledgeSeparator" type="HSeparator" parent="MazeInfoPanel/PanelContainer/MarginContainer/ScrollContainer/Content" unique_id=542078982]
+layout_mode = 2
+
+[node name="PledgeHeading" type="Label" parent="MazeInfoPanel/PanelContainer/MarginContainer/ScrollContainer/Content" unique_id=926890987]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.42, 0.78, 1, 1)
+theme_override_font_sizes/font_size = 14
+text = "PLEDGE ALGORITHM AGENT"
+
+[node name="PledgeStatus" type="Label" parent="MazeInfoPanel/PanelContainer/MarginContainer/ScrollContainer/Content" unique_id=637761199]
+layout_mode = 2
+text = "Status: —"
+
+[node name="PledgePosition" type="Label" parent="MazeInfoPanel/PanelContainer/MarginContainer/ScrollContainer/Content" unique_id=1025259491]
+layout_mode = 2
+text = "Position: —"
+
+[node name="PledgeSteps" type="Label" parent="MazeInfoPanel/PanelContainer/MarginContainer/ScrollContainer/Content" unique_id=1134630406]
+layout_mode = 2
+text = "Steps: —"
+
+[node name="PledgeElapsed" type="Label" parent="MazeInfoPanel/PanelContainer/MarginContainer/ScrollContainer/Content" unique_id=1897494208]
+layout_mode = 2
+text = "Elapsed: —"
+
+[node name="PledgePreferredHeading" type="Label" parent="MazeInfoPanel/PanelContainer/MarginContainer/ScrollContainer/Content" unique_id=510595249]
+layout_mode = 2
+text = "Preferred heading: —"
+
+[node name="PledgeWallRule" type="Label" parent="MazeInfoPanel/PanelContainer/MarginContainer/ScrollContainer/Content" unique_id=880052968]
+layout_mode = 2
+text = "Wall rule: —"
+
+[node name="PledgeTurnSum" type="Label" parent="MazeInfoPanel/PanelContainer/MarginContainer/ScrollContainer/Content" unique_id=776850350]
+layout_mode = 2
+text = "Turn sum: —"
+
+[node name="PledgeSpeed" type="Label" parent="MazeInfoPanel/PanelContainer/MarginContainer/ScrollContainer/Content" unique_id=357905004]
+layout_mode = 2
+text = "Step interval: —"
+
+[node name="TremauxSeparator" type="HSeparator" parent="MazeInfoPanel/PanelContainer/MarginContainer/ScrollContainer/Content" unique_id=582309008]
+layout_mode = 2
+
+[node name="TremauxHeading" type="Label" parent="MazeInfoPanel/PanelContainer/MarginContainer/ScrollContainer/Content" unique_id=1403813437]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.68, 0.35, 1)
+theme_override_font_sizes/font_size = 14
+text = "TRÉMAUX ALGORITHM AGENT"
+
+[node name="TremauxStatus" type="Label" parent="MazeInfoPanel/PanelContainer/MarginContainer/ScrollContainer/Content" unique_id=2113508126]
+layout_mode = 2
+text = "Status: —"
+
+[node name="TremauxPosition" type="Label" parent="MazeInfoPanel/PanelContainer/MarginContainer/ScrollContainer/Content" unique_id=1373517172]
+layout_mode = 2
+text = "Position: —"
+
+[node name="TremauxSteps" type="Label" parent="MazeInfoPanel/PanelContainer/MarginContainer/ScrollContainer/Content" unique_id=1139968423]
+layout_mode = 2
+text = "Steps: —"
+
+[node name="TremauxElapsed" type="Label" parent="MazeInfoPanel/PanelContainer/MarginContainer/ScrollContainer/Content" unique_id=1303648488]
+layout_mode = 2
+text = "Elapsed: —"
+
+[node name="TremauxPassages" type="Label" parent="MazeInfoPanel/PanelContainer/MarginContainer/ScrollContainer/Content" unique_id=263243555]
+layout_mode = 2
+text = "Marked passages: —"
+
+[node name="TremauxSpeed" type="Label" parent="MazeInfoPanel/PanelContainer/MarginContainer/ScrollContainer/Content" unique_id=947403152]
+layout_mode = 2
+text = "Step interval: —"
