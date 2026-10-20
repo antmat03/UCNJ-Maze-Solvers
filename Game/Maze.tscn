@@ -5,6 +5,7 @@
 [ext_resource type="Script" uid="uid://c0a76cffcugo1" path="res://Game/agent/WallFollowingAgent.cs" id="2_wall_agent"]
 [ext_resource type="Script" uid="uid://ccn3ry7j3s1vv" path="res://Game/MazeInfoPanel.cs" id="3_info_panel"]
 [ext_resource type="Script" uid="uid://t2dqssxpc82r" path="res://Game/AStarOverlay.cs" id="3_ptags"]
+[ext_resource type="Script" uid="uid://1li4w7vna71c" path="res://Game/agent/AStarAgent.cs" id="4_odgr7"]
 [ext_resource type="Script" uid="uid://dsdmckhx4ypoq" path="res://Game/agent/PledgeAlgorithmAgent.cs" id="4_pledge_agent"]
 [ext_resource type="Script" uid="uid://b8um62v43mws1" path="res://Game/agent/TremauxAlgoritmAgent.cs" id="5_tremaux_agent"]
 
@@ -35,6 +36,12 @@ top_level = true
 script = ExtResource("3_ptags")
 _maze = NodePath("../foreground")
 toggleButton = NodePath("../MazeInfoPanel/PanelContainer/MarginContainer/ScrollContainer/Content/ShowAStarButton")
+
+[node name="AStarAgent" type="Node2D" parent="." unique_id=108003925]
+script = ExtResource("4_odgr7")
+ForegroundNode = NodePath("../foreground")
+AStarOverlayNode = NodePath("../AStarOverlay")
+SecondsPerCell = 0.03
 
 [node name="WallFollowingAgent" type="Node2D" parent="." unique_id=2012615000]
 script = ExtResource("2_wall_agent")

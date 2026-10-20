@@ -21,6 +21,8 @@ public partial class AStarOverlay : Node2D
     [Export]
     public required Button toggleButton;
 
+    public Array<Vector2I> GeneratePath(Vector2I from, Vector2I to) => grid.GetIdPath(from, to);
+
 	public override void _Ready()
     {
         toggleButton.Toggled += (bool val) => {

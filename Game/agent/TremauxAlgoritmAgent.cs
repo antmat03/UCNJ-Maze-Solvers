@@ -21,7 +21,7 @@ public partial class TremauxAlgoritmAgent : Node2D
 	public float SecondsPerCell { get; set; } = 0.12f;
 
 	[Export]
-	public Color AgentColor { get; set; } = Colors.Orange;
+	public Color AgentColor { get; set; } = Colors.Purple;
 
 	private readonly Dictionary<string, int> _passageMarks = new();
 	private TileMapLayer _mazeLayer = null!;

@@ -27,6 +27,10 @@ public partial class Foreground : TileMapLayer
 	public readonly static Vector2I FloorAtlasCell = new(1,14);
 	public readonly static Vector2I WallAtlasCell = new(1,19);
 
+	public Vector2I StartCell = new(0,1);
+	//helper for just referencing all the exit cells 
+	public Godot.Collections.Array<Vector2I> ExitCells = new();
+
 	private static readonly Vector2I[] Directions =
 	{
 		new(0, -1),
@@ -212,13 +216,17 @@ public partial class Foreground : TileMapLayer
 		DrawMaze(walls, MazeWidth, MazeHeight);
 	}
 
-	private static void OpenEntrances(bool[,] walls, int width, int height)
+	private void OpenEntrances(bool[,] walls, int width, int height)
 	{
 		// Open the left entrance and a right-side exit aligned with an inner maze row.
-		walls[1, 0] = false;
+		walls[StartCell.Y, StartCell.X] = false;
 		int exitY = height % 2 == 0 ? height - 3 : height - 2;
 		walls[exitY, width - 2] = false;
 		walls[exitY, width - 1] = false;
+
+		//record exits 
+		//the x's and y's are reversed which im sure will never be a problem in the future wink face
+		ExitCells.Add(new(width - 1, exitY));
 	}
 
 	private void DrawMaze(bool[,] walls, int width, int height)
