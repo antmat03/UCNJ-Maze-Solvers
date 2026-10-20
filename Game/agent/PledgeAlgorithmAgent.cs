@@ -1,4 +1,5 @@
 using Godot;
+using System.Collections.Generic;
 
 public partial class PledgeAlgorithmAgent : Node2D
 {
@@ -18,9 +19,6 @@ public partial class PledgeAlgorithmAgent : Node2D
 		new(-1, 0)
 	};
 
-	private static readonly Vector2I FloorAtlasCoords = new(1, 14);
-	private const int TileSetSourceId = 0;
-
 	[Export]
 	public NodePath MazeLayerPath { get; set; } = new("../foreground");
 
@@ -36,7 +34,11 @@ public partial class PledgeAlgorithmAgent : Node2D
 	[Export]
 	public Color AgentColor { get; set; } = Colors.DeepSkyBlue;
 
+	public bool RunInSimulation { get; set; } = true;
+
 	private TileMapLayer _mazeLayer = null!;
+	private readonly HashSet<Vector2I> _collectedCoins = new();
+	private readonly HashSet<Vector2I> _triggeredHazards = new();
 	private Vector2I _currentCell;
 	private Vector2I _nextCell;
 	private Vector2 _moveStart;
@@ -51,6 +53,7 @@ public partial class PledgeAlgorithmAgent : Node2D
 
 	public Vector2I CurrentCell => _currentCell;
 	public int StepsTaken { get; private set; }
+	public int Score { get; private set; }
 	public double ElapsedSeconds { get; private set; }
 	public int TurnSum => _turnSum;
 	public bool IsFollowingWall => _isFollowingWall;
@@ -59,6 +62,13 @@ public partial class PledgeAlgorithmAgent : Node2D
 
 	public override void _Ready()
 	{
+		if (!RunInSimulation)
+		{
+			Hide();
+			SetProcess(false);
+			return;
+		}
+
 		_mazeLayer = GetNodeOrNull<TileMapLayer>(MazeLayerPath);
 		if (_mazeLayer == null)
 		{
@@ -103,6 +113,27 @@ public partial class PledgeAlgorithmAgent : Node2D
 			GlobalPosition = _moveEnd;
 			_isMoving = false;
 			QueueRedraw();
+
+			if (AgentTileRules.CollectCoin(_mazeLayer, _currentCell, _collectedCoins))
+			{
+				Score++;
+			}
+
+			if (AgentTileRules.TriggerHazard(_mazeLayer, _currentCell))
+			{
+				if (AgentTileRules.IsHazard(_mazeLayer, _currentCell))
+				{
+					_triggeredHazards.Add(_currentCell);
+				}
+
+				_currentCell = new Vector2I(0, 1);
+				_directionIndex = (int)PreferredHeading;
+				_turnSum = 0;
+				_isFollowingWall = false;
+				GlobalPosition = CellToGlobalPosition(_currentCell);
+				ChooseNextCell();
+				return;
+			}
 
 			if (IsAtExit())
 			{
@@ -223,8 +254,7 @@ public partial class PledgeAlgorithmAgent : Node2D
 
 	private bool IsWalkable(Vector2I cell)
 	{
-		return _mazeLayer.GetCellSourceId(cell) == TileSetSourceId &&
-			_mazeLayer.GetCellAtlasCoords(cell) == FloorAtlasCoords;
+		return !_triggeredHazards.Contains(cell) && AgentTileRules.IsWalkable(_mazeLayer, cell);
 	}
 
 	private Vector2 CellToGlobalPosition(Vector2I cell)
@@ -234,8 +264,6 @@ public partial class PledgeAlgorithmAgent : Node2D
 
 	private bool IsAtExit()
 	{
-		Rect2I usedRect = _mazeLayer.GetUsedRect();
-		return _directionIndex == (int)Heading.East &&
-			_currentCell.X == usedRect.End.X - 1;
+		return AgentTileRules.IsExit(_mazeLayer, _currentCell);
 	}
 }
