@@ -4,11 +4,14 @@ using System.Collections.Generic;
 
 public partial class Foreground : TileMapLayer
 {
-	[Export(PropertyHint.Range, "5,101,1")]
-	public int MazeWidth { get; set; } = 16;
+	public const int MazeWidth  = 48;
 
-	[Export(PropertyHint.Range, "5,101,1")]
-	public int MazeHeight { get; set; } = 16;
+	public const int MazeHeight = 48;
+
+
+	//our a star implementation
+	[Export]
+	public required AStarOverlay _aOverlay;
 
 	[Export]
 	public int Seed { get; set; }
@@ -20,6 +23,10 @@ public partial class Foreground : TileMapLayer
 	// Their atlas coordinates are (1,14) for floor and (1,19) for wall.
 	private const int TileSetSourceId = 0;
 
+	//see its 1,14 for floor and 1,19 for wall
+	public readonly static Vector2I FloorAtlasCell = new(1,14);
+	public readonly static Vector2I WallAtlasCell = new(1,19);
+
 	private static readonly Vector2I[] Directions =
 	{
 		new(0, -1),
@@ -27,24 +34,27 @@ public partial class Foreground : TileMapLayer
 		new(0, 1),
 		new(-1, 0)
 	};
+	public bool isFloor(Vector2I cell) => GetCellAtlasCoords(cell) == FloorAtlasCell;
+	public bool isWall(Vector2I cell) => GetCellAtlasCoords(cell) == WallAtlasCell;
 
 	public override void _Ready()
 	{
 		GeneratePrim();
+
+		_aOverlay.QueueRedraw();	//must call this after building grid/weight change/finding path
 	}
+
 
 	public void GenerateDepthFirst()
 	{
 		// 1) Normalize the requested dimensions and initialize every cell as a wall.
-		int width = NormalizeSize(MazeWidth);
-		int height = NormalizeSize(MazeHeight);
 		ActiveAlgorithm = "Depth-first search";
-		GeneratedSize = new Vector2I(width, height);
-		bool[,] walls = new bool[height, width];
+		GeneratedSize = new Vector2I(MazeWidth, MazeHeight);
+		bool[,] walls = new bool[MazeHeight, MazeWidth];
 
-		for (int y = 0; y < height; y++)
+		for (int y = 0; y < MazeHeight; y++)
 		{
-			for (int x = 0; x < width; x++)
+			for (int x = 0; x < MazeWidth; x++)
 			{
 				walls[y, x] = true;
 			}
@@ -76,8 +86,8 @@ public partial class Foreground : TileMapLayer
 			foreach (Vector2I direction in Directions)
 			{
 				Vector2I next = current + direction * 2;
-				if (next.X > 0 && next.X < width - 1 &&
-					next.Y > 0 && next.Y < height - 1 &&
+				if (next.X > 0 && next.X < MazeWidth - 1 &&
+					next.Y > 0 && next.Y < MazeHeight - 1 &&
 					walls[next.Y, next.X])
 				{
 					unvisited.Add(next);
@@ -101,22 +111,20 @@ public partial class Foreground : TileMapLayer
 		}
 
 		// Add the entrance and exit, then render the wall grid into the TileMapLayer.
-		OpenEntrances(walls, width, height);
-		DrawMaze(walls, width, height);
+		OpenEntrances(walls, MazeWidth, MazeHeight);
+		DrawMaze(walls, MazeWidth, MazeHeight);
 	}
 
 	public void GeneratePrim()
 	{
 		// 1) Normalize the requested dimensions and initialize every cell as a wall.
-		int width = NormalizeSize(MazeWidth);
-		int height = NormalizeSize(MazeHeight);
 		ActiveAlgorithm = "Randomized Prim";
-		GeneratedSize = new Vector2I(width, height);
+		GeneratedSize = new Vector2I(MazeWidth, MazeHeight);
 		// true means wall; false means open floor.
-		bool[,] walls = new bool[height, width];
-		for (int y = 0; y < height; y++)
+		bool[,] walls = new bool[MazeHeight, MazeWidth];
+		for (int y = 0; y < MazeHeight; y++)
 		{
-			for (int x = 0; x < width; x++)
+			for (int x = 0; x < MazeWidth; x++)
 			{
 				walls[y, x] = true;
 			}
@@ -138,7 +146,7 @@ public partial class Foreground : TileMapLayer
 		Vector2I start = new(1, 1);
 		walls[start.Y, start.X] = false;
 		List<Vector2I> frontier = new();
-		bool[,] queued = new bool[height, width];
+		bool[,] queued = new bool[MazeHeight, MazeWidth];
 
 		// Add each in-bounds, still-walled neighbor of an open cell to the frontier.
 		void AddFrontier(Vector2I cell)
@@ -146,8 +154,8 @@ public partial class Foreground : TileMapLayer
 			foreach (Vector2I direction in Directions)
 			{
 				Vector2I candidate = cell + direction * 2;
-				if (candidate.X > 0 && candidate.X < width - 1 &&
-					candidate.Y > 0 && candidate.Y < height - 1 &&
+				if (candidate.X > 0 && candidate.X < MazeWidth - 1 &&
+					candidate.Y > 0 && candidate.Y < MazeHeight - 1 &&
 					walls[candidate.Y, candidate.X] &&
 					!queued[candidate.Y, candidate.X])
 				{
@@ -176,8 +184,8 @@ public partial class Foreground : TileMapLayer
 			foreach (Vector2I direction in Directions)
 			{
 				Vector2I neighbor = candidate + direction * 2;
-				if (neighbor.X > 0 && neighbor.X < width - 1 &&
-					neighbor.Y > 0 && neighbor.Y < height - 1 &&
+				if (neighbor.X > 0 && neighbor.X < MazeWidth - 1 &&
+					neighbor.Y > 0 && neighbor.Y < MazeHeight - 1 &&
 					!walls[neighbor.Y, neighbor.X])
 				{
 					openNeighbors.Add(neighbor);
@@ -200,8 +208,8 @@ public partial class Foreground : TileMapLayer
 		}
 
 		// Add the entrance and exit, then render the wall grid into the tile map.
-		OpenEntrances(walls, width, height);
-		DrawMaze(walls, width, height);
+		OpenEntrances(walls, MazeWidth, MazeHeight);
+		DrawMaze(walls, MazeWidth, MazeHeight);
 	}
 
 	private static void OpenEntrances(bool[,] walls, int width, int height)
@@ -233,8 +241,17 @@ public partial class Foreground : TileMapLayer
 		}
 	}
 
-	private static int NormalizeSize(int size)
+
+	//helper so we don't accidentally parse incorrectly
+	public void ForEachTile(Func<int,int,bool> func)
 	{
-		return Math.Max(size, 5);
+		for (int y = 0; y < MazeHeight; y++)
+		{
+			for (int x = 0; x < MazeWidth; x++)
+			{
+				func.Invoke(x,y);
+			}
+		}
 	}
+
 }
