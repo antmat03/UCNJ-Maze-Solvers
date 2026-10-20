@@ -13,6 +13,10 @@ public partial class Foreground : TileMapLayer
 	[Export]
 	public required AStarOverlay _aOverlay;
 
+	//second tilemap representing items
+	[Export]
+	public required TileMapLayer ItemLayer;
+
 	[Export]
 	public int Seed { get; set; }
 
@@ -26,10 +30,16 @@ public partial class Foreground : TileMapLayer
 	//see its 1,14 for floor and 1,19 for wall
 	public readonly static Vector2I FloorAtlasCell = new(1,14);
 	public readonly static Vector2I WallAtlasCell = new(1,19);
+	public readonly static Vector2I SpikeAtlasCell = new(4,79);
+	//its a freaking pumpkin 
+	public readonly static Vector2I CoinAtlasCell = new(12,66);
 
 	public Vector2I StartCell = new(0,1);
 	//helper for just referencing all the exit cells 
 	public Godot.Collections.Array<Vector2I> ExitCells = new();
+	//refs for all coin cells
+	public Godot.Collections.Array<Vector2I> CoinCells= new();
+
 
 	private static readonly Vector2I[] Directions =
 	{
@@ -43,11 +53,39 @@ public partial class Foreground : TileMapLayer
 
 	public override void _Ready()
 	{
-		GeneratePrim();
+		// GeneratePrim();
+
+		GenerateBraided();
+		InitItemLayer();
+		
 
 		_aOverlay.QueueRedraw();	//must call this after building grid/weight change/finding path
 	}
+	public void InitItemLayer()
+	{
+		CoinCells.Clear();
+		int NumCoins = 10;		//TODO: move to global
+		RandomNumberGenerator random = new();
+		if (Seed == 0)
+		{
+			random.Randomize();
+		}
+		else
+		{
+			random.Seed = (ulong)Seed;
+		}
 
+		for(; NumCoins > 0 ;)
+		{
+			Vector2I potentialCoinCell = new Vector2I(random.RandiRange(1, MazeWidth - 1), random.RandiRange(1,MazeHeight - 1));
+			if(isFloor(potentialCoinCell)){
+				//add a coin
+				ItemLayer.SetCell(potentialCoinCell, TileSetSourceId, CoinAtlasCell);
+				CoinCells.Add(potentialCoinCell);
+				NumCoins--;
+			}
+		}
+	}
 
 	public void GenerateDepthFirst()
 	{
@@ -216,8 +254,65 @@ public partial class Foreground : TileMapLayer
 		DrawMaze(walls, MazeWidth, MazeHeight);
 	}
 
+	public void GenerateBraided()
+	{
+		ActiveAlgorithm = "Braided (loops)";
+		GeneratedSize = new Vector2I(MazeWidth, MazeHeight);
+
+		bool[,] walls = new bool[MazeHeight, MazeWidth];
+		for (int y = 0; y < MazeHeight; y++)
+		{
+			for (int x = 0; x < MazeWidth; x++)
+			{
+				walls[y, x] = true;
+			}
+		}
+
+		RandomNumberGenerator random = new();
+		if (Seed == 0)
+		{
+			random.Randomize();
+		}
+		else
+		{
+			random.Seed = (ulong)Seed;
+		}
+
+		// 1) Start with a perfect maze.
+		CarveDepthFirst(walls, random);
+
+		// 2) Remove some interior walls. Cells sit on odd coordinates, so a wall tile with
+		//    exactly one even coordinate sits between two cells. Tiles with both coordinates
+		//    even are corner posts and stay put, which keeps the grid looking like a maze.
+		int lastX = MazeWidth % 2 == 0 ? MazeWidth - 3 : MazeWidth - 2;
+		int lastY = MazeHeight % 2 == 0 ? MazeHeight - 3 : MazeHeight - 2;
+
+		for (int y = 1; y <= lastY; y++)
+		{
+			for (int x = 1; x <= lastX; x++)
+			{
+				bool betweenCells = (x % 2 == 0) != (y % 2 == 0);
+				float LoopChance = 0.15f;	//TODO: temp, move to global
+				if (betweenCells && walls[y, x] && random.Randf() < LoopChance)
+				{
+					walls[y, x] = false;
+				}
+			}
+		}
+
+		OpenEntrances(walls, MazeWidth, MazeHeight);
+		DrawMaze(walls, MazeWidth, MazeHeight);
+	}
+
+	//adds coins to random floor tiles
+	public void GenerateCoins()
+	{
+		
+	}
+
 	private void OpenEntrances(bool[,] walls, int width, int height)
 	{
+		ExitCells.Clear();
 		// Open the left entrance and a right-side exit aligned with an inner maze row.
 		walls[StartCell.Y, StartCell.X] = false;
 		int exitY = height % 2 == 0 ? height - 3 : height - 2;
@@ -234,21 +329,54 @@ public partial class Foreground : TileMapLayer
 		// Remove the previous layout, draw floor at every cell, and place walls over blocked cells.
 		Clear();
 
-		for (int y = 0; y < height; y++)
+		ForEachTile((int x, int y) =>
 		{
-			for (int x = 0; x < width; x++)
+			Vector2I cell = new(x, y);
+			// Atlas coordinates: floor is (1,14), wall is (1,19).
+			SetCell(cell, TileSetSourceId, FloorAtlasCell);
+			if (walls[y, x])
 			{
-				Vector2I cell = new(x, y);
-				// Atlas coordinates: floor is (1,14), wall is (1,19).
-				SetCell(cell, TileSetSourceId, new Vector2I(1, 14));
-				if (walls[y, x])
-				{
-					SetCell(cell, TileSetSourceId, new Vector2I(1, 19));
-				}
+				SetCell(cell, TileSetSourceId, WallAtlasCell);
 			}
-		}
+			return true;
+		});
 	}
 
+	// Same algorithm as GenerateDepthFirst, minus the setup and drawing.
+	private static void CarveDepthFirst(bool[,] walls, RandomNumberGenerator random)
+	{
+		List<Vector2I> path = new() { new Vector2I(1, 1) };
+		walls[1, 1] = false;
+
+		while (path.Count > 0)
+		{
+			Vector2I current = path[path.Count - 1];
+			List<Vector2I> unvisited = new();
+
+			foreach (Vector2I direction in Directions)
+			{
+				Vector2I next = current + direction * 2;
+				if (next.X > 0 && next.X < MazeWidth - 1 &&
+					next.Y > 0 && next.Y < MazeHeight - 1 &&
+					walls[next.Y, next.X])
+				{
+					unvisited.Add(next);
+				}
+			}
+
+			if (unvisited.Count == 0)
+			{
+				path.RemoveAt(path.Count - 1);
+				continue;
+			}
+
+			Vector2I chosen = unvisited[random.RandiRange(0, unvisited.Count - 1)];
+			Vector2I between = (current + chosen) / 2;
+			walls[between.Y, between.X] = false;
+			walls[chosen.Y, chosen.X] = false;
+			path.Add(chosen);
+		}
+	}
 
 	//helper so we don't accidentally parse incorrectly
 	public void ForEachTile(Func<int,int,bool> func)

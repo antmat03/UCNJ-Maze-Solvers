@@ -2,22 +2,16 @@ using Godot;
 
 public partial class AStarAgent : Node2D
 {
-	[Export]
-	public NodePath ForegroundNode { get; set; }
-	// public NodePath MazeLayerPath { get; set; } = new("../foreground");
-
-	[Export]
-	public NodePath AStarOverlayNode { get; set; } 
-	// public NodePath OverlayPath { get; set; } = new("../foreground/AStarOverlay");
-
 	[Export(PropertyHint.Range, "0.03,1.0,0.01")]
 	public float SecondsPerCell { get; set; } = 0.12f;
 
 	[Export]
 	public Color AgentColor { get; set; } = Colors.Orange;
 
-	private Foreground _maze = null!;
-	private AStarOverlay _overlay;
+    [Export]
+	public required Foreground _maze;
+    [Export]
+	public required AStarOverlay _overlay;
 	private Godot.Collections.Array<Vector2I> _path = new();
 	private int _pathIndex;          // index in _path of the cell we are currently standing on
 	private Vector2I _currentCell;
@@ -36,17 +30,8 @@ public partial class AStarAgent : Node2D
 
 	public override void _Ready()
 	{
-		_maze = GetNodeOrNull<Foreground>(ForegroundNode);
-		if (_maze == null)
-		{
-			GD.PushError($"{nameof(AStarAgent)} could not find a Foreground node at '{ForegroundNode}'.");
-			SetProcess(false);
-			return;
-		}
 
-		_overlay = GetNodeOrNull<AStarOverlay>(AStarOverlayNode);
-
-		// Wait until every node's _Ready has run so the maze and A* grid exist.
+        //calls StartRun once maze and astar overlay exists
 		CallDeferred(MethodName.StartRun);
 	}
 
@@ -108,12 +93,20 @@ public partial class AStarAgent : Node2D
 		_moveProgress += (float)delta / Mathf.Max(SecondsPerCell, 0.03f);
 		if (_moveProgress >= 1.0f)
 		{
+            //move to next position (logically)
 			_pathIndex++;
 			_currentCell = _path[_pathIndex];
 			StepsTaken++;
 			GlobalPosition = _moveEnd;
 			_isMoving = false;
 			QueueRedraw();
+
+            if (_maze.CoinCells.Contains(_currentCell))
+            {
+                GD.Print("Moved to coin cell!");
+                // AStarOverlayNode.Eat
+                _overlay.EatCoin(_currentCell);
+            }
 
 			if (_currentCell == _maze.ExitCells[0])
 			{

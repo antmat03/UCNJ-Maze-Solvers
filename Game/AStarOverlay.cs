@@ -8,7 +8,7 @@ public partial class AStarOverlay : Node2D
 	[Export] public Color FloorColor = new(0.2f, 0.8f, 0.3f);
 	[Export] public Color HeavyColor = new(0.9f, 0.15f, 0.15f);
 	[Export] public Color PathColor = new(1f, 1f, 0f);
-	[Export] public float MaxWeight = 5f;       // weight that maps to full HeavyColor
+	[Export] public float MaxWeight = 20f;       // weight that maps to full HeavyColor
 	[Export(PropertyHint.Range, "0,1")] public float Alpha = 0.6f;
 
 	public Array<Vector2I> Path { get; set; }
@@ -27,6 +27,8 @@ public partial class AStarOverlay : Node2D
     {
         toggleButton.Toggled += (bool val) => {
             _maze.Visible = !val;
+            _maze.ItemLayer.Visible = !val;
+            
             Visible = val;
         };		
         
@@ -37,6 +39,7 @@ public partial class AStarOverlay : Node2D
 			CellSize = Vector2.One,
 			DiagonalMode = AStarGrid2D.DiagonalModeEnum.Never
 		};
+
 		grid.Update();
 		
 		ForEachTile((int x, int y) =>
@@ -46,6 +49,8 @@ public partial class AStarOverlay : Node2D
 
 			return true;
 		});
+
+        SetAllWeights();
 
         QueueRedraw();
     }
@@ -67,6 +72,36 @@ public partial class AStarOverlay : Node2D
 
             return true;
         });
+    }
+
+    //sets weights for all floor tiles
+    public void SetAllWeights()
+    {
+        ForEachTile((int x, int y) =>
+        {
+            Vector2I cell = new(x,y);
+            if (_maze.isFloor(cell))
+            {
+                // grid.SetPointWeightScale(cell, -1f);
+            }
+            return true;
+        });
+
+        foreach(Vector2I coinCell in _maze.CoinCells)
+        {
+            grid.SetPointWeightScale(coinCell, 0.1f);    //TODO: get weight from a global var
+        }
+    }
+
+    public void EatCoin(Vector2I cell)
+    {
+        //agent takes coin
+        if(!_maze.CoinCells.Contains(cell)) return;
+
+        _maze.CoinCells.Remove(cell);
+        _maze.ItemLayer.SetCell(cell);
+        grid.SetPointWeightScale(cell, 1f);     //TODO: get weight from a global var
+        QueueRedraw();
     }
 
     // *** Different than foreground verison!
