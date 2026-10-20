@@ -39,7 +39,14 @@ public partial class Foreground : TileMapLayer
 	public Godot.Collections.Array<Vector2I> ExitCells = new();
 	//refs for all coin cells
 	public Godot.Collections.Array<Vector2I> CoinCells= new();
+	//refs for all spike cells
+	public Godot.Collections.Array<Vector2I> SpikeCells= new();
 
+	[Export]
+	public int NumCoins = 20;
+
+	[Export]
+	public int NumSpikes = 20;
 
 	private static readonly Vector2I[] Directions =
 	{
@@ -64,7 +71,9 @@ public partial class Foreground : TileMapLayer
 	public void InitItemLayer()
 	{
 		CoinCells.Clear();
-		int NumCoins = 10;		//TODO: move to global
+		SpikeCells.Clear();
+		int coins = NumCoins;
+		int spikes = NumSpikes;
 		RandomNumberGenerator random = new();
 		if (Seed == 0)
 		{
@@ -75,14 +84,26 @@ public partial class Foreground : TileMapLayer
 			random.Seed = (ulong)Seed;
 		}
 
-		for(; NumCoins > 0 ;)
+		for(; coins > 0 ;)
 		{
 			Vector2I potentialCoinCell = new Vector2I(random.RandiRange(1, MazeWidth - 1), random.RandiRange(1,MazeHeight - 1));
 			if(isFloor(potentialCoinCell)){
 				//add a coin
 				ItemLayer.SetCell(potentialCoinCell, TileSetSourceId, CoinAtlasCell);
 				CoinCells.Add(potentialCoinCell);
-				NumCoins--;
+				coins--;
+			}
+		}
+
+
+		for(; spikes > 0 ;)
+		{
+			Vector2I potentialSpikeCell = new Vector2I(random.RandiRange(5, MazeWidth - 5), random.RandiRange(5,MazeHeight - 5));
+			if (isFloor(potentialSpikeCell))
+			{
+				ItemLayer.SetCell(potentialSpikeCell, TileSetSourceId, SpikeAtlasCell);
+				SpikeCells.Add(potentialSpikeCell);
+				spikes--;
 			}
 		}
 	}

@@ -12,8 +12,8 @@ public partial class AStarAgent : Node2D
 	public required Foreground _maze;
     [Export]
 	public required AStarOverlay _overlay;
-	private Godot.Collections.Array<Vector2I> _path = new();
-	private int _pathIndex;          // index in _path of the cell we are currently standing on
+	public Godot.Collections.Array<Vector2I> _path {get; private set;} = new();
+	public int _pathIndex {get; private set;}          // index in _path of the cell we are currently standing on
 	private Vector2I _currentCell;
 	private Vector2 _moveStart;
 	private Vector2 _moveEnd;
@@ -104,8 +104,8 @@ public partial class AStarAgent : Node2D
             if (_maze.CoinCells.Contains(_currentCell))
             {
                 GD.Print("Moved to coin cell!");
-                // AStarOverlayNode.Eat
                 _overlay.EatCoin(_currentCell);
+                Replan();
             }
 
 			if (_currentCell == _maze.ExitCells[0])

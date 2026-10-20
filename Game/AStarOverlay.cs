@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using Godot;
 using Godot.Collections;
 
@@ -8,7 +9,15 @@ public partial class AStarOverlay : Node2D
 	[Export] public Color FloorColor = new(0.2f, 0.8f, 0.3f);
 	[Export] public Color HeavyColor = new(0.9f, 0.15f, 0.15f);
 	[Export] public Color PathColor = new(1f, 1f, 0f);
-	[Export] public float MaxWeight = 20f;       // weight that maps to full HeavyColor
+	[Export] public float MaxWeight = 100f;       // weight that maps to full HeavyColor
+
+    [Export]
+    public float CoinWeight = 1f;
+    
+    [Export]
+    public float FloorWeight = 50f;
+    [Export]
+    public float SpikeWeight = 100f;
 	[Export(PropertyHint.Range, "0,1")] public float Alpha = 0.6f;
 
 	public Array<Vector2I> Path { get; set; }
@@ -50,7 +59,7 @@ public partial class AStarOverlay : Node2D
 			return true;
 		});
 
-        SetAllWeights();
+        UpdateAllWeights();
 
         QueueRedraw();
     }
@@ -72,25 +81,40 @@ public partial class AStarOverlay : Node2D
 
             return true;
         });
+
+        if(Path == null) return;
+
+        Array<Vector2> pathPoints = new();
+        foreach(Vector2I tile in Path)
+        {
+            pathPoints.Add((tile + new Vector2(0.5f, 0.5f)) * tileSize);
+        }
+
+
+        DrawPolyline(pathPoints.ToArray<Vector2>(), PathColor, 3f);
     }
 
     //sets weights for all floor tiles
-    public void SetAllWeights()
+    public void UpdateAllWeights()
     {
         ForEachTile((int x, int y) =>
         {
             Vector2I cell = new(x,y);
-            if (_maze.isFloor(cell))
+            if (_maze.CoinCells.Contains(cell))
             {
-                // grid.SetPointWeightScale(cell, -1f);
+                grid.SetPointWeightScale(cell, CoinWeight);
+            }
+            else if (_maze.SpikeCells.Contains(cell))
+            {
+                grid.SetPointWeightScale(cell, SpikeWeight);
+            }
+            else if (_maze.isFloor(cell))
+            {
+                grid.SetPointWeightScale(cell, FloorWeight);
             }
             return true;
         });
 
-        foreach(Vector2I coinCell in _maze.CoinCells)
-        {
-            grid.SetPointWeightScale(coinCell, 0.1f);    //TODO: get weight from a global var
-        }
     }
 
     public void EatCoin(Vector2I cell)
@@ -100,7 +124,7 @@ public partial class AStarOverlay : Node2D
 
         _maze.CoinCells.Remove(cell);
         _maze.ItemLayer.SetCell(cell);
-        grid.SetPointWeightScale(cell, 1f);     //TODO: get weight from a global var
+        UpdateAllWeights();
         QueueRedraw();
     }
 
