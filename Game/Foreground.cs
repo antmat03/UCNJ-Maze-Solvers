@@ -4,6 +4,12 @@ using System.Collections.Generic;
 
 public partial class Foreground : TileMapLayer
 {
+	public enum MazeAlgorithm
+	{
+		RandomizedPrim,
+		DepthFirstSearch
+	}
+
 	public const int MazeWidth  = 48;
 
 	public const int MazeHeight = 48;
@@ -20,8 +26,22 @@ public partial class Foreground : TileMapLayer
 	[Export]
 	public int Seed { get; set; }
 
+	[Export(PropertyHint.Range, "0,20,1")]
+	public int HazardCount { get; set; } = 1;
+
+	[Export(PropertyHint.Range, "0,20,1")]
+	public int CoinCount { get; set; } = 1;
+
+	[Export(PropertyHint.Range, "1,20,1")]
+	public int ExitCount { get; set; } = 1;
+
+	public bool UniqueCollectibles { get; set; }
+	public bool UniqueHazards { get; set; }
+
+	public MazeAlgorithm SelectedAlgorithm { get; set; } = MazeAlgorithm.RandomizedPrim;
 	public string ActiveAlgorithm { get; private set; } = "Not generated";
 	public Vector2I GeneratedSize { get; private set; }
+	public int GenerationSeed { get; private set; }
 
 	// Both atlas tiles are in the tileset source with ID 0.
 	// Their atlas coordinates are (1,14) for floor and (1,19) for wall.
@@ -106,6 +126,39 @@ public partial class Foreground : TileMapLayer
 				spikes--;
 			}
 		}
+		
+	}
+
+	public override void _UnhandledInput(InputEvent @event)
+	{
+		if (@event is not InputEventKey keyEvent ||
+			!keyEvent.Pressed ||
+			keyEvent.Echo)
+		{
+			return;
+		}
+
+		if (keyEvent.Keycode == Key.Escape)
+		{
+			MainMenu.ReturnToSetupOnNextOpen();
+			Error error = GetTree().ChangeSceneToFile("res://UI/main_menu.tscn");
+			if (error != Error.Ok)
+			{
+				GD.PushError($"Could not return to generator settings: {error}.");
+			}
+
+			GetViewport().SetInputAsHandled();
+		}
+		else if (keyEvent.Keycode == Key.R)
+		{
+			Error error = MainMenu.RestartSimulation(GenerationSeed);
+			if (error != Error.Ok)
+			{
+				GD.PushError($"Could not restart the simulation: {error}.");
+			}
+
+			GetViewport().SetInputAsHandled();
+		}
 	}
 
 	public void GenerateDepthFirst()
@@ -123,16 +176,8 @@ public partial class Foreground : TileMapLayer
 			}
 		}
 
-		// 2) Use a random seed for each run when Seed is zero; otherwise, use the supplied seed.
-		RandomNumberGenerator random = new();
-		if (Seed == 0)
-		{
-			random.Randomize();
-		}
-		else
-		{
-			random.Seed = (ulong)Seed;
-		}
+		// 2) Resolve one seed for this run so the full maze can be reproduced on restart.
+		RandomNumberGenerator random = CreateGenerationRandom();
 
 		// 3) Start a depth-first search at (1,1). The list acts as a stack of the current route.
 		List<Vector2I> path = new() { new Vector2I(1, 1) };
@@ -193,16 +238,8 @@ public partial class Foreground : TileMapLayer
 			}
 		}
 
-		// 2) Use a random seed for each run when Seed is zero; otherwise, use the supplied seed.
-		RandomNumberGenerator random = new();
-		if (Seed == 0)
-		{
-			random.Randomize();
-		}
-		else
-		{
-			random.Seed = (ulong)Seed;
-		}
+		// 2) Resolve one seed for this run so the full maze can be reproduced on restart.
+		RandomNumberGenerator random = CreateGenerationRandom();
 
 		// 3) Start the maze at (1,1). The frontier stores uncarved cells two steps away
 		//    from the currently open maze, and queued prevents adding a cell more than once.
@@ -392,6 +429,27 @@ public partial class Foreground : TileMapLayer
 			walls[chosen.Y, chosen.X] = false;
 			path.Add(chosen);
 		}
+	}
+
+	private RandomNumberGenerator CreateGenerationRandom()
+	{
+		RandomNumberGenerator random = new();
+		if (Seed == 0)
+		{
+			random.Randomize();
+			GenerationSeed = unchecked((int)random.Seed);
+			if (GenerationSeed == 0)
+			{
+				GenerationSeed = 1;
+			}
+		}
+		else
+		{
+			GenerationSeed = Seed;
+		}
+
+		random.Seed = unchecked((ulong)GenerationSeed);
+		return random;
 	}
 
 	//helper so we don't accidentally parse incorrectly

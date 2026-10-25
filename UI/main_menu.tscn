@@ -32,29 +32,178 @@ grow_vertical = 2
 
 [node name="VBoxContainer" type="VBoxContainer" parent="PanelContainer" unique_id=1862643762]
 layout_mode = 2
-theme_override_constants/separation = 60
+theme_override_constants/separation = 20
 alignment = 1
 
-[node name="start" type="Button" parent="PanelContainer/VBoxContainer" unique_id=1454895276]
+[node name="MainOptions" type="VBoxContainer" parent="PanelContainer/VBoxContainer" unique_id=918058665]
+layout_mode = 2
+theme_override_constants/separation = 24
+alignment = 1
+
+[node name="start" type="Button" parent="PanelContainer/VBoxContainer/MainOptions" unique_id=1454895276]
 layout_mode = 2
 text = "START SIMULATION"
 
-[node name="HBoxContainer" type="HBoxContainer" parent="PanelContainer/VBoxContainer" unique_id=601294295]
+[node name="exit" type="Button" parent="PanelContainer/VBoxContainer/MainOptions" unique_id=2110843259]
+layout_mode = 2
+text = "Exit"
+
+[node name="SetupOptions" type="VBoxContainer" parent="PanelContainer/VBoxContainer" unique_id=1652933571]
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 12
+alignment = 1
+
+[node name="Title" type="Label" parent="PanelContainer/VBoxContainer/SetupOptions" unique_id=1563841535]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "SIMULATION SETUP"
+
+[node name="AgentLabel" type="Label" parent="PanelContainer/VBoxContainer/SetupOptions" unique_id=987256073]
+layout_mode = 2
+text = "Choose agents to run:"
+
+[node name="WallFollowing" type="CheckBox" parent="PanelContainer/VBoxContainer/SetupOptions" unique_id=456705926]
+layout_mode = 2
+button_pressed = true
+text = "Wall-following agent"
+
+[node name="Pledge" type="CheckBox" parent="PanelContainer/VBoxContainer/SetupOptions" unique_id=1914189319]
+layout_mode = 2
+button_pressed = true
+text = "Pledge algorithm agent"
+
+[node name="Tremaux" type="CheckBox" parent="PanelContainer/VBoxContainer/SetupOptions" unique_id=48641752]
+layout_mode = 2
+button_pressed = true
+text = "Trémaux algorithm agent"
+
+[node name="OmniscientSeparator" type="HSeparator" parent="PanelContainer/VBoxContainer/SetupOptions" unique_id=1528403751]
+layout_mode = 2
+
+[node name="OmniscientAgentsLabel" type="Label" parent="PanelContainer/VBoxContainer/SetupOptions" unique_id=1528403752]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.6, 0.68, 0.79, 1)
+text = "OMNISCIENT AGENTS"
+
+[node name="Dijkstra" type="CheckBox" parent="PanelContainer/VBoxContainer/SetupOptions" unique_id=1528403753]
+layout_mode = 2
+text = "Dijkstra's algorithm agent"
+
+[node name="AStar" type="CheckBox" parent="PanelContainer/VBoxContainer/SetupOptions" unique_id=189615326]
+layout_mode = 2
+text = "A* algorithm agent"
+
+[node name="DeadEndFilling" type="CheckBox" parent="PanelContainer/VBoxContainer/SetupOptions" unique_id=504349120]
+layout_mode = 2
+text = "Dead-end filling agent"
+
+[node name="PriorityTeamSeparator" type="HSeparator" parent="PanelContainer/VBoxContainer/SetupOptions"]
+layout_mode = 2
+
+[node name="PriorityTeamLabel" type="Label" parent="PanelContainer/VBoxContainer/SetupOptions"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.6, 0.8, 1, 1)
+text = "THREE-AGENT PRIORITY TEAM"
+
+[node name="PriorityTeamOptions" type="HBoxContainer" parent="PanelContainer/VBoxContainer/SetupOptions"]
 layout_mode = 2
 alignment = 1
 
-[node name="Label" type="Label" parent="PanelContainer/VBoxContainer/HBoxContainer" unique_id=1051497674]
+[node name="Enabled" type="CheckBox" parent="PanelContainer/VBoxContainer/SetupOptions/PriorityTeamOptions"]
 layout_mode = 2
-text = "Select Agent Type"
+text = "Run team"
 
-[node name="Select agent type" type="OptionButton" parent="PanelContainer/VBoxContainer/HBoxContainer" unique_id=600387659]
+[node name="Algorithm" type="OptionButton" parent="PanelContainer/VBoxContainer/SetupOptions/PriorityTeamOptions"]
 layout_mode = 2
-item_count = 2
-popup/item_0/text = "Blind Agents"
-popup/item_0/id = 0
-popup/item_1/text = "Omnicient Agents"
-popup/item_1/id = 1
 
-[node name="exit" type="Button" parent="PanelContainer/VBoxContainer" unique_id=2110843259]
+[node name="GeneratorSettingsLabel" type="Label" parent="PanelContainer/VBoxContainer/SetupOptions"]
 layout_mode = 2
-text = "Exit"
+theme_override_colors/font_color = Color(0.45, 0.95, 0.72, 1)
+text = "GENERATOR SETTINGS"
+
+[node name="MazeSizeLabel" type="Label" parent="PanelContainer/VBoxContainer/SetupOptions"]
+layout_mode = 2
+text = "Maze size (even):"
+
+[node name="MazeSize" type="SpinBox" parent="PanelContainer/VBoxContainer/SetupOptions"]
+custom_minimum_size = Vector2(120, 0)
+layout_mode = 2
+min_value = 6.0
+max_value = 100.0
+step = 2.0
+value = 32.0
+
+[node name="MazeLabel" type="Label" parent="PanelContainer/VBoxContainer/SetupOptions" unique_id=2091222958]
+layout_mode = 2
+text = "Maze generation algorithm:"
+
+[node name="MazeAlgorithm" type="OptionButton" parent="PanelContainer/VBoxContainer/SetupOptions" unique_id=366758429]
+layout_mode = 2
+
+[node name="ExitCount" type="HBoxContainer" parent="PanelContainer/VBoxContainer/SetupOptions"]
+layout_mode = 2
+alignment = 1
+
+[node name="Label" type="Label" parent="PanelContainer/VBoxContainer/SetupOptions/ExitCount"]
+layout_mode = 2
+text = "Exit count:"
+
+[node name="Count" type="SpinBox" parent="PanelContainer/VBoxContainer/SetupOptions/ExitCount"]
+custom_minimum_size = Vector2(90, 0)
+layout_mode = 2
+min_value = 1.0
+max_value = 20.0
+value = 1.0
+
+[node name="HazardCount" type="HBoxContainer" parent="PanelContainer/VBoxContainer/SetupOptions"]
+layout_mode = 2
+alignment = 1
+
+[node name="Label" type="Label" parent="PanelContainer/VBoxContainer/SetupOptions/HazardCount"]
+layout_mode = 2
+text = "Hazard count:"
+
+[node name="Count" type="SpinBox" parent="PanelContainer/VBoxContainer/SetupOptions/HazardCount"]
+custom_minimum_size = Vector2(90, 0)
+layout_mode = 2
+min_value = 0.0
+max_value = 20.0
+value = 1.0
+
+[node name="CoinCount" type="HBoxContainer" parent="PanelContainer/VBoxContainer/SetupOptions"]
+layout_mode = 2
+alignment = 1
+
+[node name="Label" type="Label" parent="PanelContainer/VBoxContainer/SetupOptions/CoinCount"]
+layout_mode = 2
+text = "Coin count:"
+
+[node name="Count" type="SpinBox" parent="PanelContainer/VBoxContainer/SetupOptions/CoinCount"]
+custom_minimum_size = Vector2(90, 0)
+layout_mode = 2
+min_value = 0.0
+max_value = 20.0
+value = 1.0
+
+[node name="UniqueCollectibles" type="CheckBox" parent="PanelContainer/VBoxContainer/SetupOptions"]
+layout_mode = 2
+text = "Unique collectibles (shared between agents)"
+
+[node name="UniqueHazards" type="CheckBox" parent="PanelContainer/VBoxContainer/SetupOptions"]
+layout_mode = 2
+text = "Hazards disappear after first contact"
+
+[node name="SelectionError" type="Label" parent="PanelContainer/VBoxContainer/SetupOptions" unique_id=1744152890]
+visible = false
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.48, 0.43, 1)
+text = "Select at least one agent to continue."
+
+[node name="RunSimulation" type="Button" parent="PanelContainer/VBoxContainer/SetupOptions" unique_id=1368964411]
+layout_mode = 2
+text = "RUN SIMULATION"
+
+[node name="Back" type="Button" parent="PanelContainer/VBoxContainer/SetupOptions" unique_id=1022798808]
+layout_mode = 2
+text = "Back"
