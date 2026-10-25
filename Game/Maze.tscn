@@ -8,6 +8,8 @@
 [ext_resource type="Script" uid="uid://1li4w7vna71c" path="res://Game/agent/AStarAgent.cs" id="4_odgr7"]
 [ext_resource type="Script" uid="uid://dsdmckhx4ypoq" path="res://Game/agent/PledgeAlgorithmAgent.cs" id="4_pledge_agent"]
 [ext_resource type="Script" uid="uid://b8um62v43mws1" path="res://Game/agent/TremauxAlgoritmAgent.cs" id="5_tremaux_agent"]
+[ext_resource type="Texture2D" uid="uid://dvu328ah8j7q0" path="res://resources/temp_health.tres" id="9_5bave"]
+[ext_resource type="Script" uid="uid://bfuvnmr6vif55" path="res://UI/HealthBar.cs" id="10_qmq8b"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_info_panel"]
 bg_color = Color(0.055, 0.075, 0.11, 0.96)
@@ -46,10 +48,12 @@ script = ExtResource("3_ptags")
 _maze = NodePath("../foreground")
 toggleButton = NodePath("../MazeInfoPanel/PanelContainer/MarginContainer/ScrollContainer/Content/ShowAStarButton")
 
-[node name="AStarAgent" type="Node2D" parent="." unique_id=108003925 node_paths=PackedStringArray("_maze", "_overlay")]
+[node name="AStarAgent" type="Node2D" parent="." unique_id=108003925 node_paths=PackedStringArray("_maze", "_overlay", "healthBar")]
 script = ExtResource("4_odgr7")
 _maze = NodePath("../foreground")
 _overlay = NodePath("../AStarOverlay")
+health = 4
+healthBar = NodePath("../MazeInfoPanel/PanelContainer/HealthBar")
 
 [node name="WallFollowingAgent" type="Node2D" parent="." unique_id=2012615000]
 script = ExtResource("2_wall_agent")
@@ -77,6 +81,16 @@ offset_right = -16.0
 offset_bottom = 752.0
 grow_horizontal = 0
 theme_override_styles/panel = SubResource("StyleBoxFlat_info_panel")
+
+[node name="HealthBar" type="TextureProgressBar" parent="MazeInfoPanel/PanelContainer" unique_id=1929141732]
+custom_minimum_size = Vector2(400, 100)
+layout_mode = 2
+offset_transform_enabled = true
+offset_transform_position = Vector2(-400, 0)
+max_value = 4.0
+value = 4.0
+texture_progress = ExtResource("9_5bave")
+script = ExtResource("10_qmq8b")
 
 [node name="MarginContainer" type="MarginContainer" parent="MazeInfoPanel/PanelContainer" unique_id=92736579]
 layout_mode = 2

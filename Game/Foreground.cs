@@ -325,11 +325,6 @@ public partial class Foreground : TileMapLayer
 		DrawMaze(walls, MazeWidth, MazeHeight);
 	}
 
-	//adds coins to random floor tiles
-	public void GenerateCoins()
-	{
-		
-	}
 
 	private void OpenEntrances(bool[,] walls, int width, int height)
 	{

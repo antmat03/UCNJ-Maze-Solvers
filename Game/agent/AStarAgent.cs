@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using Godot;
 
 public partial class AStarAgent : Node2D
@@ -22,6 +23,21 @@ public partial class AStarAgent : Node2D
 	private bool _isRunning;
 	private bool _reachedExit;
 
+    private int _health = 4;
+
+    public int health
+    {
+        get => _health;
+        set {
+            healthBar.Value = value;
+            GD.Print($"Health changed to {value}");
+            _health = value;
+        }
+    }
+
+    [Export]
+    public HealthBar healthBar;
+
 	public Vector2I CurrentCell => _currentCell;
 	public int StepsTaken { get; private set; }
 	public double ElapsedSeconds { get; private set; }
@@ -30,7 +46,7 @@ public partial class AStarAgent : Node2D
 
 	public override void _Ready()
 	{
-
+        healthBar.Value = health;
         //calls StartRun once maze and astar overlay exists
 		CallDeferred(MethodName.StartRun);
 	}
@@ -101,10 +117,19 @@ public partial class AStarAgent : Node2D
 			_isMoving = false;
 			QueueRedraw();
 
+            //stepped on coin cell
             if (_maze.CoinCells.Contains(_currentCell))
             {
-                GD.Print("Moved to coin cell!");
+                GD.PushWarning("Moved to coin cell!");
                 _overlay.EatCoin(_currentCell);
+                Replan();
+            }
+            //stepped on spike cell
+            if (_maze.SpikeCells.Contains(_currentCell))
+            {
+                GD.PushWarning("Moved to spike cell!");
+                _maze.SpikeCells.Remove(_currentCell);  //TODO: temp, remove!
+                health -= 1;
                 Replan();
             }
 
