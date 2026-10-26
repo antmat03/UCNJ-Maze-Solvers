@@ -18,6 +18,13 @@ public partial class AStarOverlay : Node2D
     public float FloorWeight = 50f;
     [Export]
     public float SpikeWeight = 100f;
+
+    [Export]
+    public float CoinGameScore = 10f;
+
+    [Export]
+    public float SpikeGameScore = -10f;
+
 	[Export(PropertyHint.Range, "0,1")] public float Alpha = 0.6f;
 
 	public Array<Vector2I> Path { get; set; }
@@ -138,6 +145,19 @@ public partial class AStarOverlay : Node2D
                 func.Invoke(x,y);
             }
         }
+    }
+
+    public float GetGameScoreAt(Vector2I cell)
+    {
+        float score = 0f;
+        if (_maze.CoinCells.Contains(cell))
+        {
+            score = CoinGameScore;
+        }else if (_maze.SpikeCells.Contains(cell))
+        {
+            score = SpikeGameScore;
+        }
+        return score;
     }
 
     //returns a color for the tile

@@ -293,7 +293,8 @@ public partial class MazeInfoPanel : CanvasLayer
 
 		_aStarPositionLabel.Text = $"Position: ({_aStarAgent.CurrentCell.X}, {_aStarAgent.CurrentCell.Y})";
 		_aStarStepsLabel.Text = $"Steps: {_aStarAgent.StepsTaken}";
-		// _aStarScoreLabel.Text = $"Score: {_aStarAgent.Score}";
+		_aStarScoreLabel.Text = $"Game Score: {_aStarAgent.GameScore}";
+		_aStarScoreLabel.Text = $"Weight Score: {_aStarAgent.WeightScore}";
 		_aStarTimeLabel.Text = $"Elapsed: {_aStarAgent.ElapsedSeconds:0.0} s";
 		// _aStarPathLabel.Text =
 		// 	$"Least-cost route: {_aStarAgent.RouteCost} cost, {_aStarAgent.PathLength} cells";

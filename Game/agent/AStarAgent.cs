@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations;
+using System.Reflection.Metadata;
 using System.Text.RegularExpressions;
 using Godot;
 
@@ -22,6 +24,9 @@ public partial class AStarAgent : Node2D
 	private bool _isMoving;
 	private bool _isRunning;
 	private bool _reachedExit;
+	private float _weightScore;
+	private float _gameScore;
+	private int _coinsCollected;
 
     private int _health = 4;
 
@@ -32,17 +37,22 @@ public partial class AStarAgent : Node2D
             healthBar.Value = value;
             GD.Print($"Health changed to {value}");
             _health = value;
+
+			if(_health <= 0) EndRun();
         }
     }
 
     [Export]
     public HealthBar healthBar;
 
+	public string AgentType = "Goal-Oriented";
 	public Vector2I CurrentCell => _currentCell;
 	public int StepsTaken { get; private set; }
 	public double ElapsedSeconds { get; private set; }
 	public bool IsRunning => _isRunning;
 	public bool ReachedExit => _reachedExit;
+	public float WeightScore => _weightScore;
+	public float GameScore => _gameScore;
 
 	public override void _Ready()
 	{
@@ -66,9 +76,17 @@ public partial class AStarAgent : Node2D
 			SetProcess(false);
 			return;
 		}
-
+		
 		_isRunning = true;
 		StepAlongPath();
+	}
+
+	//run whenever run ends, whether agent dies, completes maze, or whatever.
+	public void EndRun()
+	{
+		GD.Print($"{AgentType} agent has ended run! logging data");
+		CsvLogger.Append("user://results.csv", packData());
+
 	}
 
     //recalcs path, call this if weight or tiles change
@@ -122,6 +140,7 @@ public partial class AStarAgent : Node2D
             {
                 GD.PushWarning("Moved to coin cell!");
                 _overlay.EatCoin(_currentCell);
+				_coinsCollected += 1;
                 Replan();
             }
             //stepped on spike cell
@@ -133,10 +152,12 @@ public partial class AStarAgent : Node2D
                 Replan();
             }
 
+			//stepped on exit cell
 			if (_currentCell == _maze.ExitCells[0])
 			{
 				_reachedExit = true;
 				_isRunning = false;
+				EndRun();
 				return;
 			}
 
@@ -163,14 +184,54 @@ public partial class AStarAgent : Node2D
 			return;
 		}
 
+		//update data collection values
+		_weightScore += _overlay.grid.GetPointWeightScale(_path[nextIndex]);
+		_gameScore += _overlay.GetGameScoreAt(_path[nextIndex]);
+
 		_moveStart = CellToGlobalPosition(_path[_pathIndex]);
 		_moveEnd = CellToGlobalPosition(_path[nextIndex]);
 		_moveProgress = 0.0f;
 		_isMoving = true;
 	}
 
+
 	private Vector2 CellToGlobalPosition(Vector2I cell)
 	{
 		return _maze.ToGlobal(_maze.MapToLocal(cell));
+	}
+
+	public ResearchData packData()
+	{
+		return new ResearchData
+		{
+			AgentType = AgentType,
+			WeightScore = _weightScore,
+			GameScore = _gameScore,
+			Moves = StepsTaken,
+			ReachedExit = _reachedExit,
+			ElapsedSeconds = ElapsedSeconds,
+			RemainingHealth = _health,
+			CoinsCollected = _coinsCollected,		
+			Seed = _maze.Seed,
+			ExitCount = _maze.ExitCells.Count,
+			CoinCount = _maze.CoinCells.Count,
+			HazardCount = _maze.SpikeCells.Count,
+		};
+	}
+
+	public struct ResearchData
+	{
+		public string AgentType; 
+		public float WeightScore;
+		public float GameScore;
+		public int Moves;	//Steps taken
+		public bool ReachedExit;
+		public double ElapsedSeconds;
+		public int RemainingHealth;
+		public int CoinsCollected;
+		public int Seed;
+		public int ExitCount;
+		public int CoinCount;
+		public int HazardCount;
 	}
 }
