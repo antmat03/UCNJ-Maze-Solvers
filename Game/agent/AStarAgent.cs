@@ -1,10 +1,12 @@
-using System.ComponentModel.DataAnnotations;
-using System.Reflection.Metadata;
-using System.Text.RegularExpressions;
 using Godot;
 
 public partial class AStarAgent : Node2D
 {
+	private Vector2 _moveStart;
+	private Vector2 _moveEnd;
+	private bool _isMoving;
+	private float _moveProgress;
+
 	[Export(PropertyHint.Range, "0.03,1.0,0.01")]
 	public float SecondsPerCell { get; set; } = 0.12f;
 
@@ -12,21 +14,21 @@ public partial class AStarAgent : Node2D
 	public Color AgentColor { get; set; } = Colors.Orange;
 
     [Export]
-	public required Foreground _maze;
+	public required Foreground Maze;
     [Export]
-	public required AStarOverlay _overlay;
-	public Godot.Collections.Array<Vector2I> _path {get; private set;} = new();
-	public int _pathIndex {get; private set;}          // index in _path of the cell we are currently standing on
-	private Vector2I _currentCell;
-	private Vector2 _moveStart;
-	private Vector2 _moveEnd;
-	private float _moveProgress;
-	private bool _isMoving;
-	private bool _isRunning;
-	private bool _reachedExit;
-	private float _weightScore;
-	private float _gameScore;
-	private int _coinsCollected;
+	public required AStarOverlay Overlay;
+	public Godot.Collections.Array<Vector2I> Path {get; private set;} = new();
+	public int PathIndex {get; private set;}          // index in _path of the cell we are currently standing on
+	public Vector2I CurrentCell;
+	public int CoinsCollected;
+	public bool ReachedExit;
+	public float WeightScore;
+	public float GameScore;
+	public string AgentType = "Goal-Oriented";
+	public int StepsTaken { get; private set; }
+	public double ElapsedSeconds { get; private set; }
+	public bool IsRunning;
+	public bool RunInSimulation;
 
     private int _health = 4;
 
@@ -45,15 +47,6 @@ public partial class AStarAgent : Node2D
     [Export]
     public HealthBar healthBar;
 
-	public string AgentType = "Goal-Oriented";
-	public Vector2I CurrentCell => _currentCell;
-	public int StepsTaken { get; private set; }
-	public double ElapsedSeconds { get; private set; }
-	public bool IsRunning => _isRunning;
-	public bool ReachedExit => _reachedExit;
-	public float WeightScore => _weightScore;
-	public float GameScore => _gameScore;
-
 	public override void _Ready()
 	{
         healthBar.Value = health;
@@ -63,13 +56,13 @@ public partial class AStarAgent : Node2D
 
 	public void StartRun()
 	{
-
-		_currentCell = _maze.StartCell;
-		GlobalPosition = CellToGlobalPosition(_currentCell);
+		
+		CurrentCell = Maze.StartCell;
+		GlobalPosition = CellToGlobalPosition(CurrentCell);
 
 		StepsTaken = 0;
 		ElapsedSeconds = 0;
-		_reachedExit = false;
+		ReachedExit = false;
 
 		if (!Replan())
 		{
@@ -77,7 +70,7 @@ public partial class AStarAgent : Node2D
 			return;
 		}
 		
-		_isRunning = true;
+		IsRunning = true;
 		StepAlongPath();
 	}
 
@@ -85,6 +78,7 @@ public partial class AStarAgent : Node2D
 	public void EndRun()
 	{
 		GD.Print($"{AgentType} agent has ended run! logging data");
+		IsRunning = false;
 		CsvLogger.Append("user://results.csv", packData());
 
 	}
@@ -93,18 +87,18 @@ public partial class AStarAgent : Node2D
 	public bool Replan()
 	{
         //TODO: if adding more exit cells, iterate throught them all
-		_path = _overlay.GeneratePath(_currentCell, _maze.ExitCells[0]);
-		_pathIndex = 0; // _path[0] is the cell we're standing on
+		Path = Overlay.GeneratePath(CurrentCell, Maze.ExitCells[0]);
+		PathIndex = 0; // _path[0] is the cell we're standing on
 
-		if (_overlay != null)
+		if (Overlay != null)
 		{
-			_overlay.Path = _path;
-			_overlay.QueueRedraw();
+			Overlay.Path = Path;
+			Overlay.QueueRedraw();
 		}
 
-		if (_path.Count == 0)
+		if (Path.Count == 0)
 		{
-			GD.PushWarning($"{nameof(AStarAgent)} found no path from {_currentCell} to {_maze.ExitCells[0]}.");
+			GD.PushWarning($"{nameof(AStarAgent)} found no path from {CurrentCell} to {Maze.ExitCells[0]}.");
 			return false;
 		}
 
@@ -113,7 +107,7 @@ public partial class AStarAgent : Node2D
 
 	public override void _Process(double delta)
 	{
-		if (!_isRunning)
+		if (!IsRunning || Foreground.IsPaused)
 		{
 			return;
 		}
@@ -128,35 +122,34 @@ public partial class AStarAgent : Node2D
 		if (_moveProgress >= 1.0f)
 		{
             //move to next position (logically)
-			_pathIndex++;
-			_currentCell = _path[_pathIndex];
+			PathIndex++;
+			CurrentCell = Path[PathIndex];
 			StepsTaken++;
 			GlobalPosition = _moveEnd;
 			_isMoving = false;
 			QueueRedraw();
 
             //stepped on coin cell
-            if (_maze.CoinCells.Contains(_currentCell))
+            if (Maze.CoinCells.Contains(CurrentCell))
             {
                 GD.PushWarning("Moved to coin cell!");
-                _overlay.EatCoin(_currentCell);
-				_coinsCollected += 1;
+                Overlay.EatCoin(CurrentCell);
+				CoinsCollected += 1;
                 Replan();
             }
             //stepped on spike cell
-            if (_maze.SpikeCells.Contains(_currentCell))
+            if (Maze.SpikeCells.Contains(CurrentCell))
             {
                 GD.PushWarning("Moved to spike cell!");
-                _maze.SpikeCells.Remove(_currentCell);  //TODO: temp, remove!
+                Maze.SpikeCells.Remove(CurrentCell);  //TODO: temp, remove!
                 health -= 1;
                 Replan();
             }
 
 			//stepped on exit cell
-			if (_currentCell == _maze.ExitCells[0])
+			if (CurrentCell == Maze.ExitCells[0])
 			{
-				_reachedExit = true;
-				_isRunning = false;
+				ReachedExit = true;
 				EndRun();
 				return;
 			}
@@ -177,19 +170,20 @@ public partial class AStarAgent : Node2D
 	// Begin moving toward the next cell on the precomputed path.
 	private void StepAlongPath()
 	{
-		int nextIndex = _pathIndex + 1;
-		if (nextIndex >= _path.Count)
+		int nextIndex = PathIndex + 1;
+		if (nextIndex >= Path.Count)
 		{
-			_isRunning = false;
+			GD.PushError("A* next index exceeds Path, ending run");
+			EndRun();
 			return;
 		}
 
 		//update data collection values
-		_weightScore += _overlay.grid.GetPointWeightScale(_path[nextIndex]);
-		_gameScore += _overlay.GetGameScoreAt(_path[nextIndex]);
+		WeightScore += Overlay.Grid.GetPointWeightScale(Path[nextIndex]);
+		GameScore += Overlay.GetGameScoreAt(Path[nextIndex]);
 
-		_moveStart = CellToGlobalPosition(_path[_pathIndex]);
-		_moveEnd = CellToGlobalPosition(_path[nextIndex]);
+		_moveStart = CellToGlobalPosition(Path[PathIndex]);
+		_moveEnd = CellToGlobalPosition(Path[nextIndex]);
 		_moveProgress = 0.0f;
 		_isMoving = true;
 	}
@@ -197,7 +191,7 @@ public partial class AStarAgent : Node2D
 
 	private Vector2 CellToGlobalPosition(Vector2I cell)
 	{
-		return _maze.ToGlobal(_maze.MapToLocal(cell));
+		return Maze.ToGlobal(Maze.MapToLocal(cell));
 	}
 
 	public ResearchData packData()
@@ -205,17 +199,17 @@ public partial class AStarAgent : Node2D
 		return new ResearchData
 		{
 			AgentType = AgentType,
-			WeightScore = _weightScore,
-			GameScore = _gameScore,
+			WeightScore = WeightScore,
+			GameScore = GameScore,
 			Moves = StepsTaken,
-			ReachedExit = _reachedExit,
+			ReachedExit = ReachedExit,
 			ElapsedSeconds = ElapsedSeconds,
 			RemainingHealth = _health,
-			CoinsCollected = _coinsCollected,		
-			Seed = _maze.Seed,
-			ExitCount = _maze.ExitCells.Count,
-			CoinCount = _maze.CoinCells.Count,
-			HazardCount = _maze.SpikeCells.Count,
+			CoinsCollected = CoinsCollected,		
+			Seed = Maze.Seed,
+			ExitCount = Maze.ExitCells.Count,
+			CoinCount = Maze.CoinCells.Count,
+			HazardCount = Maze.SpikeCells.Count,
 		};
 	}
 

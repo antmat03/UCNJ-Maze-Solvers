@@ -10,9 +10,11 @@ public partial class Foreground : TileMapLayer
 		DepthFirstSearch
 	}
 
-	public const int MazeWidth  = 48;
+	public int MazeWidth  = 48;
 
-	public const int MazeHeight = 48;
+	public int MazeHeight = 48;
+
+	public static bool IsPaused = false;
 
 
 	//our a star implementation
@@ -25,12 +27,6 @@ public partial class Foreground : TileMapLayer
 
 	[Export]
 	public int Seed { get; set; }
-
-	[Export(PropertyHint.Range, "0,20,1")]
-	public int HazardCount { get; set; } = 1;
-
-	[Export(PropertyHint.Range, "0,20,1")]
-	public int CoinCount { get; set; } = 1;
 
 	[Export(PropertyHint.Range, "1,20,1")]
 	public int ExitCount { get; set; } = 1;
@@ -63,10 +59,10 @@ public partial class Foreground : TileMapLayer
 	public Godot.Collections.Array<Vector2I> SpikeCells= new();
 
 	[Export]
-	public int NumCoins = 20;
+	public int CoinCount = 20;
 
 	[Export]
-	public int NumSpikes = 20;
+	public int SpikeCount = 20;
 
 	private static readonly Vector2I[] Directions =
 	{
@@ -81,6 +77,7 @@ public partial class Foreground : TileMapLayer
 	public override void _Ready()
 	{
 		// GeneratePrim();
+		
 
 		GenerateBraided();
 		InitItemLayer();
@@ -92,8 +89,8 @@ public partial class Foreground : TileMapLayer
 	{
 		CoinCells.Clear();
 		SpikeCells.Clear();
-		int coins = NumCoins;
-		int spikes = NumSpikes;
+		int coins = CoinCount;
+		int spikes = SpikeCount;
 		RandomNumberGenerator random = new();
 		if (Seed == 0)
 		{
@@ -129,8 +126,10 @@ public partial class Foreground : TileMapLayer
 		
 	}
 
+
 	public override void _UnhandledInput(InputEvent @event)
 	{
+		//why is this here
 		if (@event is not InputEventKey keyEvent ||
 			!keyEvent.Pressed ||
 			keyEvent.Echo)
@@ -157,6 +156,17 @@ public partial class Foreground : TileMapLayer
 				GD.PushError($"Could not restart the simulation: {error}.");
 			}
 
+			GetViewport().SetInputAsHandled();
+		}
+		else if (keyEvent.Keycode == Key.P)
+		{
+			IsPaused = !IsPaused;
+			GetViewport().SetInputAsHandled();
+		}
+		else if (keyEvent.Keycode == Key.S)
+		{
+			_aOverlay.Visible = !_aOverlay.Visible;
+			Visible = !Visible;
 			GetViewport().SetInputAsHandled();
 		}
 	}
@@ -396,7 +406,7 @@ public partial class Foreground : TileMapLayer
 	}
 
 	// Same algorithm as GenerateDepthFirst, minus the setup and drawing.
-	private static void CarveDepthFirst(bool[,] walls, RandomNumberGenerator random)
+	private void CarveDepthFirst(bool[,] walls, RandomNumberGenerator random)
 	{
 		List<Vector2I> path = new() { new Vector2I(1, 1) };
 		walls[1, 1] = false;
