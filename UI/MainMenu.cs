@@ -4,15 +4,10 @@ using System;
 public partial class MainMenu : Control
 {
 	private sealed record SetupSettings(
-		bool WallFollowing,
-		bool Pledge,
-		bool Tremaux,
 		bool Dijkstra,
 		bool AStar,
 		bool DeadEndFilling,
-		bool PriorityTeam,
 		int MazeAlgorithmIndex,
-		int PriorityTeamAlgorithmIndex,
 		double MazeSize,
 		double ExitCount,
 		double HazardCount,
@@ -23,119 +18,101 @@ public partial class MainMenu : Control
 	private static SetupSettings _lastSetupSettings;
 	private static bool _returnToSetupOnNextOpen;
 
-	private Button _startButton = null!;
-	private Button _exitButton = null!;
-	private Button _runSimulationButton = null!;
-	private Button _backButton = null!;
-	private CheckBox _wallFollowingCheckBox = null!;
-	private CheckBox _pledgeCheckBox = null!;
-	private CheckBox _tremauxCheckBox = null!;
-	private CheckBox _dijkstraCheckBox = null!;
-	private CheckBox _aStarCheckBox = null!;
-	private CheckBox _deadEndFillingCheckBox = null!;
-	private CheckBox _priorityTeamCheckBox = null!;
-	private OptionButton _mazeAlgorithmOption = null!;
-	private OptionButton _priorityTeamAlgorithmOption = null!;
-	private SpinBox _mazeSizeSpinBox = null!;
-	private SpinBox _exitCountSpinBox = null!;
-	private SpinBox _hazardCountSpinBox = null!;
-	private SpinBox _coinCountSpinBox = null!;
-	private CheckBox _uniqueCollectiblesCheckBox = null!;
-	private CheckBox _uniqueHazardsCheckBox = null!;
-	private Label _selectionErrorLabel = null!;
-	private Control _mainOptions = null!;
-	private Control _setupOptions = null!;
+	[Export]
+	public Button StartSimButton;	//opens the sim options
+	[Export]
+	public Button ExitButton;
+	[Export]
+	public Button RunSimButton;	//starts the sim
+	[Export]
+	public CheckBox DijkstraCheckBox;
+	[Export]
+	public CheckBox AStarCheckBox;
+	[Export]
+	public CheckBox DeadEndFillingCheckBox;
+	[Export]
+	public OptionButton MazeAlgorithmOption;
+	[Export]
+	public SpinBox MazeSizeSpinBox;
+	[Export]
+	public SpinBox ExitCountSpinBox;
+	[Export]
+	public SpinBox HazardCountSpinBox;
+	[Export]
+	public SpinBox CoinCountSpinBox;
+	[Export]
+	public CheckBox UniqueCollectiblesCheckBox;
+	[Export]
+	public CheckBox UniqueHazardsCheckBox;
+	[Export]
+	public Control MainOptions;
+	[Export]
+	public Control SetupOptions;
 
 	public override void _Ready()
 	{
-		_mainOptions = GetNode<Control>("PanelContainer/VBoxContainer/MainOptions");
-		_setupOptions = GetNode<Control>("PanelContainer/VBoxContainer/SetupOptions");
-		_startButton = GetNode<Button>("PanelContainer/VBoxContainer/MainOptions/start");
-		_exitButton = GetNode<Button>("PanelContainer/VBoxContainer/MainOptions/exit");
-		_runSimulationButton = GetNode<Button>("PanelContainer/VBoxContainer/SetupOptions/RunSimulation");
-		_backButton = GetNode<Button>("PanelContainer/VBoxContainer/SetupOptions/Back");
-		_wallFollowingCheckBox = GetNode<CheckBox>("PanelContainer/VBoxContainer/SetupOptions/WallFollowing");
-		_pledgeCheckBox = GetNode<CheckBox>("PanelContainer/VBoxContainer/SetupOptions/Pledge");
-		_tremauxCheckBox = GetNode<CheckBox>("PanelContainer/VBoxContainer/SetupOptions/Tremaux");
-		_dijkstraCheckBox = GetNode<CheckBox>("PanelContainer/VBoxContainer/SetupOptions/Dijkstra");
-		_aStarCheckBox = GetNode<CheckBox>("PanelContainer/VBoxContainer/SetupOptions/AStar");
-		_deadEndFillingCheckBox = GetNode<CheckBox>("PanelContainer/VBoxContainer/SetupOptions/DeadEndFilling");
-		_priorityTeamCheckBox = GetNode<CheckBox>("PanelContainer/VBoxContainer/SetupOptions/PriorityTeamOptions/Enabled");
-		_mazeAlgorithmOption = GetNode<OptionButton>("PanelContainer/VBoxContainer/SetupOptions/MazeAlgorithm");
-		_priorityTeamAlgorithmOption = GetNode<OptionButton>("PanelContainer/VBoxContainer/SetupOptions/PriorityTeamOptions/Algorithm");
-		_mazeSizeSpinBox = GetNode<SpinBox>("PanelContainer/VBoxContainer/SetupOptions/MazeSize");
-		_exitCountSpinBox = GetNode<SpinBox>("PanelContainer/VBoxContainer/SetupOptions/ExitCount/Count");
-		_hazardCountSpinBox = GetNode<SpinBox>("PanelContainer/VBoxContainer/SetupOptions/HazardCount/Count");
-		_coinCountSpinBox = GetNode<SpinBox>("PanelContainer/VBoxContainer/SetupOptions/CoinCount/Count");
-		_uniqueCollectiblesCheckBox = GetNode<CheckBox>("PanelContainer/VBoxContainer/SetupOptions/UniqueCollectibles");
-		_uniqueHazardsCheckBox = GetNode<CheckBox>("PanelContainer/VBoxContainer/SetupOptions/UniqueHazards");
-		_selectionErrorLabel = GetNode<Label>("PanelContainer/VBoxContainer/SetupOptions/SelectionError");
+		// _mainOptions = GetNode<Control>("PanelContainer/VBoxContainer/MainOptions");
+		// _setupOptions = GetNode<Control>("PanelContainer/VBoxContainer/SetupOptions");
+		// StartSimButton = GetNode<Button>("PanelContainer/VBoxContainer/MainOptions/start");
+		// ExitButton = GetNode<Button>("PanelContainer/VBoxContainer/MainOptions/exit");
+		// RunSimButton = GetNode<Button>("PanelContainer/VBoxContainer/SetupOptions/RunSimulation");
+		// DijkstraCheckBox = GetNode<CheckBox>("PanelContainer/VBoxContainer/SetupOptions/Dijkstra");
+		// AStarCheckBox = GetNode<CheckBox>("PanelContainer/VBoxContainer/SetupOptions/AStar");
+		// _deadEndFillingCheckBox = GetNode<CheckBox>("PanelContainer/VBoxContainer/SetupOptions/DeadEndFilling");
+		// _priorityTeamCheckBox = GetNode<CheckBox>("PanelContainer/VBoxContainer/SetupOptions/PriorityTeamOptions/Enabled");
+		// _mazeAlgorithmOption = GetNode<OptionButton>("PanelContainer/VBoxContainer/SetupOptions/MazeAlgorithm");
+		// _priorityTeamAlgorithmOption = GetNode<OptionButton>("PanelContainer/VBoxContainer/SetupOptions/PriorityTeamOptions/Algorithm");
+		// _mazeSizeSpinBox = GetNode<SpinBox>("PanelContainer/VBoxContainer/SetupOptions/MazeSize");
+		// _exitCountSpinBox = GetNode<SpinBox>("PanelContainer/VBoxContainer/SetupOptions/ExitCount/Count");
+		// _hazardCountSpinBox = GetNode<SpinBox>("PanelContainer/VBoxContainer/SetupOptions/HazardCount/Count");
+		// _coinCountSpinBox = GetNode<SpinBox>("PanelContainer/VBoxContainer/SetupOptions/CoinCount/Count");
+		// _uniqueCollectiblesCheckBox = GetNode<CheckBox>("PanelContainer/VBoxContainer/SetupOptions/UniqueCollectibles");
+		// _uniqueHazardsCheckBox = GetNode<CheckBox>("PanelContainer/VBoxContainer/SetupOptions/UniqueHazards");
+		// _selectionErrorLabel = GetNode<Label>("PanelContainer/VBoxContainer/SetupOptions/SelectionError");
 
-		_mazeAlgorithmOption.AddItem("Randomized Prim", (int)Foreground.MazeAlgorithm.RandomizedPrim);
-		_mazeAlgorithmOption.AddItem("Depth-first search", (int)Foreground.MazeAlgorithm.DepthFirstSearch);
-		_mazeAlgorithmOption.Select(0);
-		_priorityTeamAlgorithmOption.AddItem("Dijkstra", (int)PriorityAgent.SearchAlgorithm.Dijkstra);
-		_priorityTeamAlgorithmOption.AddItem("A*", (int)PriorityAgent.SearchAlgorithm.AStar);
-		_priorityTeamAlgorithmOption.Select(1);
-		_mazeSizeSpinBox.ValueChanged += OnMazeSizeValueChanged;
+		MazeAlgorithmOption.AddItem("Randomized Prim", (int)Foreground.MazeAlgorithm.RandomizedPrim);
+		MazeAlgorithmOption.AddItem("Depth-first search", (int)Foreground.MazeAlgorithm.DepthFirstSearch);
+		MazeAlgorithmOption.Select(0);
+		MazeSizeSpinBox.ValueChanged += OnMazeSizeValueChanged;
 
 		if (_returnToSetupOnNextOpen)
 		{
 			RestoreSetupSettings(_lastSetupSettings);
-			_mainOptions.Hide();
-			_setupOptions.Show();
+			MainOptions.Hide();
+			SetupOptions.Show();
 			_returnToSetupOnNextOpen = false;
 		}
 
-		_startButton.Pressed += ShowSetupOptions;
-		_exitButton.Pressed += OnExitPressed;
-		_runSimulationButton.Pressed += OnRunSimulationPressed;
-		_backButton.Pressed += ShowMainOptions;
+		StartSimButton.Pressed += ShowSetupOptions;
+		ExitButton.Pressed += OnExitPressed;
+		RunSimButton.Pressed += OnRunSimulationPressed;
 	}
 
 	private void ShowSetupOptions()
 	{
-		_mainOptions.Hide();
-		_setupOptions.Show();
+		MainOptions.Hide();
+		SetupOptions.Show();
 	}
 
 	private void ShowMainOptions()
 	{
-		_selectionErrorLabel.Hide();
-		_setupOptions.Hide();
-		_mainOptions.Show();
+		SetupOptions.Hide();
+		MainOptions.Show();
 	}
 
 	private void OnRunSimulationPressed()
 	{
-		if (!_wallFollowingCheckBox.ButtonPressed &&
-			!_pledgeCheckBox.ButtonPressed &&
-			!_tremauxCheckBox.ButtonPressed &&
-			!_dijkstraCheckBox.ButtonPressed &&
-			!_aStarCheckBox.ButtonPressed &&
-			!_deadEndFillingCheckBox.ButtonPressed &&
-			!_priorityTeamCheckBox.ButtonPressed)
-		{
-			_selectionErrorLabel.Show();
-			return;
-		}
-
 		_lastSetupSettings = new SetupSettings(
-			_wallFollowingCheckBox.ButtonPressed,
-			_pledgeCheckBox.ButtonPressed,
-			_tremauxCheckBox.ButtonPressed,
-			_dijkstraCheckBox.ButtonPressed,
-			_aStarCheckBox.ButtonPressed,
-			_deadEndFillingCheckBox.ButtonPressed,
-			_priorityTeamCheckBox.ButtonPressed,
-			_mazeAlgorithmOption.Selected,
-			_priorityTeamAlgorithmOption.Selected,
-			_mazeSizeSpinBox.Value,
-			_exitCountSpinBox.Value,
-			_hazardCountSpinBox.Value,
-			_coinCountSpinBox.Value,
-			_uniqueCollectiblesCheckBox.ButtonPressed,
-			_uniqueHazardsCheckBox.ButtonPressed);
+			DijkstraCheckBox.ButtonPressed,
+			AStarCheckBox.ButtonPressed,
+			DeadEndFillingCheckBox.ButtonPressed,
+			MazeAlgorithmOption.Selected,
+			MazeSizeSpinBox.Value,
+			ExitCountSpinBox.Value,
+			HazardCountSpinBox.Value,
+			CoinCountSpinBox.Value,
+			UniqueCollectiblesCheckBox.ButtonPressed,
+			UniqueHazardsCheckBox.ButtonPressed);
 
 		Error error = StartSimulation(_lastSetupSettings, 0);
 		if (error != Error.Ok)
@@ -172,33 +149,14 @@ public partial class MainMenu : Control
 		maze.MazeHeight = mazeSize;
 		maze.Seed = seed;
 		maze.ExitCount = (int)settings.ExitCount;
-		maze.HazardCount = (int)settings.HazardCount;
+		maze.SpikeCount = (int)settings.HazardCount;
 		maze.CoinCount = (int)settings.CoinCount;
 		maze.UniqueCollectibles = settings.UniqueCollectibles;
 		maze.UniqueHazards = settings.UniqueHazards;
-		gameScene.GetNode<WallFollowingAgent>("WallFollowingAgent").RunInSimulation = settings.WallFollowing;
-		gameScene.GetNode<PledgeAlgorithmAgent>("PledgeAlgorithmAgent").RunInSimulation = settings.Pledge;
-		gameScene.GetNode<TremauxAlgoritmAgent>("TremauxAlgoritmAgent").RunInSimulation = settings.Tremaux;
+
 		gameScene.GetNode<DijkstraAgent>("DijkstraAgent").RunInSimulation = settings.Dijkstra;
 		gameScene.GetNode<AStarAgent>("AStarAgent").RunInSimulation = settings.AStar;
-		gameScene.GetNode<DeadEndFillingAgent>("DeadEndFillingAgent").RunInSimulation = settings.DeadEndFilling;
-		PriorityAgent.SearchAlgorithm teamAlgorithm =
-			(PriorityAgent.SearchAlgorithm)settings.PriorityTeamAlgorithmIndex;
-		ConfigurePriorityAgent(
-			gameScene.GetNode<PriorityAgent>("CoinPriorityAgent"),
-			settings.PriorityTeam,
-			teamAlgorithm,
-			PriorityAgent.Priority.CollectCoins);
-		ConfigurePriorityAgent(
-			gameScene.GetNode<PriorityAgent>("HazardPriorityAgent"),
-			settings.PriorityTeam,
-			teamAlgorithm,
-			PriorityAgent.Priority.AvoidHazards);
-		ConfigurePriorityAgent(
-			gameScene.GetNode<PriorityAgent>("TimePriorityAgent"),
-			settings.PriorityTeam,
-			teamAlgorithm,
-			PriorityAgent.Priority.FastestTime);
+		gameScene.GetNode<OtherAStarAgent>("OtherAStarAgent").RunInSimulation = settings.DeadEndFilling;
 
 		SceneTree tree = (SceneTree)Engine.GetMainLoop();
 		return tree.ChangeSceneToNode(gameScene);
@@ -222,21 +180,16 @@ public partial class MainMenu : Control
 
 	private void RestoreSetupSettings(SetupSettings settings)
 	{
-		_wallFollowingCheckBox.ButtonPressed = settings.WallFollowing;
-		_pledgeCheckBox.ButtonPressed = settings.Pledge;
-		_tremauxCheckBox.ButtonPressed = settings.Tremaux;
-		_dijkstraCheckBox.ButtonPressed = settings.Dijkstra;
-		_aStarCheckBox.ButtonPressed = settings.AStar;
-		_deadEndFillingCheckBox.ButtonPressed = settings.DeadEndFilling;
-		_priorityTeamCheckBox.ButtonPressed = settings.PriorityTeam;
-		_mazeAlgorithmOption.Select(settings.MazeAlgorithmIndex);
-		_priorityTeamAlgorithmOption.Select(settings.PriorityTeamAlgorithmIndex);
-		_mazeSizeSpinBox.Value = settings.MazeSize;
-		_exitCountSpinBox.Value = settings.ExitCount;
-		_hazardCountSpinBox.Value = settings.HazardCount;
-		_coinCountSpinBox.Value = settings.CoinCount;
-		_uniqueCollectiblesCheckBox.ButtonPressed = settings.UniqueCollectibles;
-		_uniqueHazardsCheckBox.ButtonPressed = settings.UniqueHazards;
+		DijkstraCheckBox.ButtonPressed = settings.Dijkstra;
+		AStarCheckBox.ButtonPressed = settings.AStar;
+		DeadEndFillingCheckBox.ButtonPressed = settings.DeadEndFilling;
+		MazeAlgorithmOption.Select(settings.MazeAlgorithmIndex);
+		MazeSizeSpinBox.Value = settings.MazeSize;
+		ExitCountSpinBox.Value = settings.ExitCount;
+		HazardCountSpinBox.Value = settings.HazardCount;
+		CoinCountSpinBox.Value = settings.CoinCount;
+		UniqueCollectiblesCheckBox.ButtonPressed = settings.UniqueCollectibles;
+		UniqueHazardsCheckBox.ButtonPressed = settings.UniqueHazards;
 	}
 
 	private void OnExitPressed()
@@ -249,7 +202,7 @@ public partial class MainMenu : Control
 		int evenSize = Mathf.Clamp(Mathf.RoundToInt((float)value / 2.0f) * 2, 6, 100);
 		if ((int)value != evenSize)
 		{
-			_mazeSizeSpinBox.Value = evenSize;
+			MazeSizeSpinBox.Value = evenSize;
 		}
 	}
 

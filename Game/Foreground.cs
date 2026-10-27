@@ -10,20 +10,23 @@ public partial class Foreground : TileMapLayer
 		DepthFirstSearch
 	}
 
-	[Export(PropertyHint.Range, "5,101,1")]
-	public int MazeWidth { get; set; } = 16;
+	public int MazeWidth  = 48;
 
-	[Export(PropertyHint.Range, "5,101,1")]
-	public int MazeHeight { get; set; } = 16;
+	public int MazeHeight = 48;
+
+	public static bool IsPaused = false;
+
+
+	//our a star implementation
+	[Export]
+	public required AStarOverlay _aOverlay;
+
+	//second tilemap representing items
+	[Export]
+	public required TileMapLayer ItemLayer;
 
 	[Export]
 	public int Seed { get; set; }
-
-	[Export(PropertyHint.Range, "0,20,1")]
-	public int HazardCount { get; set; } = 1;
-
-	[Export(PropertyHint.Range, "0,20,1")]
-	public int CoinCount { get; set; } = 1;
 
 	[Export(PropertyHint.Range, "1,20,1")]
 	public int ExitCount { get; set; } = 1;
@@ -39,9 +42,27 @@ public partial class Foreground : TileMapLayer
 	// Both atlas tiles are in the tileset source with ID 0.
 	// Their atlas coordinates are (1,14) for floor and (1,19) for wall.
 	private const int TileSetSourceId = 0;
-	private static readonly Vector2I HazardAtlasCoords = new(0, 0);
-	private static readonly Vector2I CoinAtlasCoords = new(12, 26);
-	private static readonly Vector2I FloorAtlasCoords = new(1, 14);
+
+	//see its 1,14 for floor and 1,19 for wall
+	public readonly static Vector2I FloorAtlasCell = new(1,14);
+	public readonly static Vector2I WallAtlasCell = new(1,19);
+	public readonly static Vector2I SpikeAtlasCell = new(4,79);
+	//its a freaking pumpkin 
+	public readonly static Vector2I CoinAtlasCell = new(12,66);
+
+	public Vector2I StartCell = new(0,1);
+	//helper for just referencing all the exit cells 
+	public Godot.Collections.Array<Vector2I> ExitCells = new();
+	//refs for all coin cells
+	public Godot.Collections.Array<Vector2I> CoinCells= new();
+	//refs for all spike cells
+	public Godot.Collections.Array<Vector2I> SpikeCells= new();
+
+	[Export]
+	public int CoinCount = 20;
+
+	[Export]
+	public int SpikeCount = 20;
 
 	private static readonly Vector2I[] Directions =
 	{
@@ -50,25 +71,65 @@ public partial class Foreground : TileMapLayer
 		new(0, 1),
 		new(-1, 0)
 	};
+	public bool isFloor(Vector2I cell) => GetCellAtlasCoords(cell) == FloorAtlasCell;
+	public bool isWall(Vector2I cell) => GetCellAtlasCoords(cell) == WallAtlasCell;
 
 	public override void _Ready()
 	{
-		switch (SelectedAlgorithm)
-		{
-			case MazeAlgorithm.RandomizedPrim:
-				GeneratePrim();
-				break;
-			case MazeAlgorithm.DepthFirstSearch:
-				GenerateDepthFirst();
-				break;
-			default:
-				GD.PushError($"Unsupported maze algorithm: {SelectedAlgorithm}.");
-				break;
-		}
+		// GeneratePrim();
+		
+
+		GenerateBraided();
+		InitItemLayer();
+		
+
+		_aOverlay.QueueRedraw();	//must call this after building grid/weight change/finding path
 	}
+	public void InitItemLayer()
+	{
+		CoinCells.Clear();
+		SpikeCells.Clear();
+		int coins = CoinCount;
+		int spikes = SpikeCount;
+		RandomNumberGenerator random = new();
+		if (Seed == 0)
+		{
+			random.Randomize();
+		}
+		else
+		{
+			random.Seed = (ulong)Seed;
+		}
+
+		for(; coins > 0 ;)
+		{
+			Vector2I potentialCoinCell = new Vector2I(random.RandiRange(1, MazeWidth - 1), random.RandiRange(1,MazeHeight - 1));
+			if(isFloor(potentialCoinCell)){
+				//add a coin
+				ItemLayer.SetCell(potentialCoinCell, TileSetSourceId, CoinAtlasCell);
+				CoinCells.Add(potentialCoinCell);
+				coins--;
+			}
+		}
+
+
+		for(; spikes > 0 ;)
+		{
+			Vector2I potentialSpikeCell = new Vector2I(random.RandiRange(5, MazeWidth - 5), random.RandiRange(5,MazeHeight - 5));
+			if (isFloor(potentialSpikeCell))
+			{
+				ItemLayer.SetCell(potentialSpikeCell, TileSetSourceId, SpikeAtlasCell);
+				SpikeCells.Add(potentialSpikeCell);
+				spikes--;
+			}
+		}
+		
+	}
+
 
 	public override void _UnhandledInput(InputEvent @event)
 	{
+		//why is this here
 		if (@event is not InputEventKey keyEvent ||
 			!keyEvent.Pressed ||
 			keyEvent.Echo)
@@ -97,20 +158,29 @@ public partial class Foreground : TileMapLayer
 
 			GetViewport().SetInputAsHandled();
 		}
+		else if (keyEvent.Keycode == Key.P)
+		{
+			IsPaused = !IsPaused;
+			GetViewport().SetInputAsHandled();
+		}
+		else if (keyEvent.Keycode == Key.S)
+		{
+			_aOverlay.Visible = !_aOverlay.Visible;
+			Visible = !Visible;
+			GetViewport().SetInputAsHandled();
+		}
 	}
 
 	public void GenerateDepthFirst()
 	{
 		// 1) Normalize the requested dimensions and initialize every cell as a wall.
-		int width = NormalizeSize(MazeWidth);
-		int height = NormalizeSize(MazeHeight);
 		ActiveAlgorithm = "Depth-first search";
-		GeneratedSize = new Vector2I(width, height);
-		bool[,] walls = new bool[height, width];
+		GeneratedSize = new Vector2I(MazeWidth, MazeHeight);
+		bool[,] walls = new bool[MazeHeight, MazeWidth];
 
-		for (int y = 0; y < height; y++)
+		for (int y = 0; y < MazeHeight; y++)
 		{
-			for (int x = 0; x < width; x++)
+			for (int x = 0; x < MazeWidth; x++)
 			{
 				walls[y, x] = true;
 			}
@@ -134,8 +204,8 @@ public partial class Foreground : TileMapLayer
 			foreach (Vector2I direction in Directions)
 			{
 				Vector2I next = current + direction * 2;
-				if (next.X > 0 && next.X < width - 1 &&
-					next.Y > 0 && next.Y < height - 1 &&
+				if (next.X > 0 && next.X < MazeWidth - 1 &&
+					next.Y > 0 && next.Y < MazeHeight - 1 &&
 					walls[next.Y, next.X])
 				{
 					unvisited.Add(next);
@@ -159,22 +229,20 @@ public partial class Foreground : TileMapLayer
 		}
 
 		// Add the entrance and exit, then render the wall grid into the TileMapLayer.
-		OpenEntrances(walls, width, height, random);
-		DrawMaze(walls, width, height);
+		OpenEntrances(walls, MazeWidth, MazeHeight);
+		DrawMaze(walls, MazeWidth, MazeHeight);
 	}
 
 	public void GeneratePrim()
 	{
 		// 1) Normalize the requested dimensions and initialize every cell as a wall.
-		int width = NormalizeSize(MazeWidth);
-		int height = NormalizeSize(MazeHeight);
 		ActiveAlgorithm = "Randomized Prim";
-		GeneratedSize = new Vector2I(width, height);
+		GeneratedSize = new Vector2I(MazeWidth, MazeHeight);
 		// true means wall; false means open floor.
-		bool[,] walls = new bool[height, width];
-		for (int y = 0; y < height; y++)
+		bool[,] walls = new bool[MazeHeight, MazeWidth];
+		for (int y = 0; y < MazeHeight; y++)
 		{
-			for (int x = 0; x < width; x++)
+			for (int x = 0; x < MazeWidth; x++)
 			{
 				walls[y, x] = true;
 			}
@@ -188,7 +256,7 @@ public partial class Foreground : TileMapLayer
 		Vector2I start = new(1, 1);
 		walls[start.Y, start.X] = false;
 		List<Vector2I> frontier = new();
-		bool[,] queued = new bool[height, width];
+		bool[,] queued = new bool[MazeHeight, MazeWidth];
 
 		// Add each in-bounds, still-walled neighbor of an open cell to the frontier.
 		void AddFrontier(Vector2I cell)
@@ -196,8 +264,8 @@ public partial class Foreground : TileMapLayer
 			foreach (Vector2I direction in Directions)
 			{
 				Vector2I candidate = cell + direction * 2;
-				if (candidate.X > 0 && candidate.X < width - 1 &&
-					candidate.Y > 0 && candidate.Y < height - 1 &&
+				if (candidate.X > 0 && candidate.X < MazeWidth - 1 &&
+					candidate.Y > 0 && candidate.Y < MazeHeight - 1 &&
 					walls[candidate.Y, candidate.X] &&
 					!queued[candidate.Y, candidate.X])
 				{
@@ -226,8 +294,8 @@ public partial class Foreground : TileMapLayer
 			foreach (Vector2I direction in Directions)
 			{
 				Vector2I neighbor = candidate + direction * 2;
-				if (neighbor.X > 0 && neighbor.X < width - 1 &&
-					neighbor.Y > 0 && neighbor.Y < height - 1 &&
+				if (neighbor.X > 0 && neighbor.X < MazeWidth - 1 &&
+					neighbor.Y > 0 && neighbor.Y < MazeHeight - 1 &&
 					!walls[neighbor.Y, neighbor.X])
 				{
 					openNeighbors.Add(neighbor);
@@ -250,51 +318,73 @@ public partial class Foreground : TileMapLayer
 		}
 
 		// Add the entrance and exit, then render the wall grid into the tile map.
-		OpenEntrances(walls, width, height, random);
-		DrawMaze(walls, width, height);
+		OpenEntrances(walls, MazeWidth, MazeHeight);
+		DrawMaze(walls, MazeWidth, MazeHeight);
 	}
 
-	private void OpenEntrances(
-		bool[,] walls,
-		int width,
-		int height,
-		RandomNumberGenerator random)
+	public void GenerateBraided()
 	{
-		// Open the left entrance and the default right-side exit.
-		walls[1, 0] = false;
+		ActiveAlgorithm = "Braided (loops)";
+		GeneratedSize = new Vector2I(MazeWidth, MazeHeight);
+
+		bool[,] walls = new bool[MazeHeight, MazeWidth];
+		for (int y = 0; y < MazeHeight; y++)
+		{
+			for (int x = 0; x < MazeWidth; x++)
+			{
+				walls[y, x] = true;
+			}
+		}
+
+		RandomNumberGenerator random = new();
+		if (Seed == 0)
+		{
+			random.Randomize();
+		}
+		else
+		{
+			random.Seed = (ulong)Seed;
+		}
+
+		// 1) Start with a perfect maze.
+		CarveDepthFirst(walls, random);
+
+		// 2) Remove some interior walls. Cells sit on odd coordinates, so a wall tile with
+		//    exactly one even coordinate sits between two cells. Tiles with both coordinates
+		//    even are corner posts and stay put, which keeps the grid looking like a maze.
+		int lastX = MazeWidth % 2 == 0 ? MazeWidth - 3 : MazeWidth - 2;
+		int lastY = MazeHeight % 2 == 0 ? MazeHeight - 3 : MazeHeight - 2;
+
+		for (int y = 1; y <= lastY; y++)
+		{
+			for (int x = 1; x <= lastX; x++)
+			{
+				bool betweenCells = (x % 2 == 0) != (y % 2 == 0);
+				float LoopChance = 0.15f;	//TODO: temp, move to global
+				if (betweenCells && walls[y, x] && random.Randf() < LoopChance)
+				{
+					walls[y, x] = false;
+				}
+			}
+		}
+
+		OpenEntrances(walls, MazeWidth, MazeHeight);
+		DrawMaze(walls, MazeWidth, MazeHeight);
+	}
+
+
+	private void OpenEntrances(bool[,] walls, int width, int height)
+	{
+		ExitCells.Clear();
+		// Open the left entrance and a right-side exit aligned with an inner maze row.
+		walls[StartCell.Y, StartCell.X] = false;
 		int exitY = height % 2 == 0 ? height - 3 : height - 2;
 		walls[exitY, width - 2] = false;
 		walls[exitY, width - 1] = false;
 
-		int requestedExitCount = Math.Max(ExitCount, 1);
-		List<int> candidateRows = new();
-		for (int y = 1; y < height - 1; y++)
-		{
-			if (y != exitY && Math.Abs(y - exitY) > 1 && !walls[y, width - 3])
-			{
-				candidateRows.Add(y);
-			}
-		}
-
-		int generatedExitCount = 1;
-		while (generatedExitCount < requestedExitCount && candidateRows.Count > 0)
-		{
-			int candidateIndex = (int)random.RandiRange(0, candidateRows.Count - 1);
-			int candidateY = candidateRows[candidateIndex];
-			candidateRows.RemoveAt(candidateIndex);
-
-			walls[candidateY, width - 2] = false;
-			walls[candidateY, width - 1] = false;
-			generatedExitCount++;
-
-			candidateRows.RemoveAll(row => Math.Abs(row - candidateY) <= 1);
-		}
-
-		if (generatedExitCount < requestedExitCount)
-		{
-			GD.PushWarning(
-				$"Requested {requestedExitCount} exits, but only {generatedExitCount} distinct connected exits fit this maze.");
-		}
+		//record exits 
+		//the x's and y's are reversed which im sure will never be a problem in the future wink face
+		ExitCells.Add(new(width - 1, exitY));
 	}
 
 	private void DrawMaze(bool[,] walls, int width, int height)
@@ -302,135 +392,53 @@ public partial class Foreground : TileMapLayer
 		// Remove the previous layout, draw floor at every cell, and place walls over blocked cells.
 		Clear();
 
-		for (int y = 0; y < height; y++)
+		ForEachTile((int x, int y) =>
 		{
-			for (int x = 0; x < width; x++)
+			Vector2I cell = new(x, y);
+			// Atlas coordinates: floor is (1,14), wall is (1,19).
+			SetCell(cell, TileSetSourceId, FloorAtlasCell);
+			if (walls[y, x])
 			{
-				Vector2I cell = new(x, y);
-				// Atlas coordinates: floor is (1,14), wall is (1,19).
-				SetCell(cell, TileSetSourceId, new Vector2I(1, 14));
-				if (walls[y, x])
-				{
-					SetCell(cell, TileSetSourceId, new Vector2I(1, 19));
-				}
+				SetCell(cell, TileSetSourceId, WallAtlasCell);
 			}
-		}
-
-		PlaceHazardAndCoin(walls, width, height);
+			return true;
+		});
 	}
 
-	private void PlaceHazardAndCoin(bool[,] walls, int width, int height)
+	// Same algorithm as GenerateDepthFirst, minus the setup and drawing.
+	private void CarveDepthFirst(bool[,] walls, RandomNumberGenerator random)
 	{
-		List<Vector2I> candidates = new();
-		for (int y = 1; y < height - 1; y++)
-		{
-			for (int x = 1; x < width - 1; x++)
-			{
-				if (!walls[y, x])
-				{
-					candidates.Add(new Vector2I(x, y));
-				}
-			}
-		}
+		List<Vector2I> path = new() { new Vector2I(1, 1) };
+		walls[1, 1] = false;
 
-		HashSet<Vector2I> guaranteedExitRoute =
-			new(GetRouteToAnyExit(walls, width, height));
-		List<Vector2I> hazardCandidates = candidates.FindAll(
-			cell => !guaranteedExitRoute.Contains(cell));
-		int hazardCount = Math.Max(HazardCount, 0);
-		int coinCount = Math.Max(CoinCount, 0);
-		if (hazardCount > hazardCandidates.Count)
+		while (path.Count > 0)
 		{
-			GD.PushWarning(
-				$"Requested {hazardCount} hazards, but only {hazardCandidates.Count} can be placed without blocking every safe exit route. " +
-				$"Reducing the hazard count to {hazardCandidates.Count}.");
-			hazardCount = hazardCandidates.Count;
-		}
-
-		if (coinCount > candidates.Count - hazardCount)
-		{
-			int availableCoinCells = Math.Max(candidates.Count - hazardCount, 0);
-			GD.PushWarning(
-				$"Requested {coinCount} coins, but only {availableCoinCells} interior floor cells remain. " +
-				$"Reducing the coin count to {availableCoinCells}.");
-			coinCount = availableCoinCells;
-		}
-
-		RandomNumberGenerator random = new()
-		{
-			Seed = unchecked((ulong)GenerationSeed) ^ 0x9E3779B97F4A7C15UL
-		};
-
-		for (int i = 0; i < hazardCount; i++)
-		{
-			int index = (int)random.RandiRange(0, hazardCandidates.Count - 1);
-			Vector2I hazardCell = hazardCandidates[index];
-			SetCell(hazardCell, TileSetSourceId, HazardAtlasCoords);
-			hazardCandidates.RemoveAt(index);
-			candidates.Remove(hazardCell);
-		}
-
-		for (int i = 0; i < coinCount; i++)
-		{
-			int index = (int)random.RandiRange(0, candidates.Count - 1);
-			SetCell(candidates[index], TileSetSourceId, CoinAtlasCoords);
-			candidates.RemoveAt(index);
-		}
-	}
-
-	private static List<Vector2I> GetRouteToAnyExit(bool[,] walls, int width, int height)
-	{
-		Vector2I start = new(0, 1);
-		Queue<Vector2I> cellsToVisit = new();
-		Dictionary<Vector2I, Vector2I> previousCells = new();
-		HashSet<Vector2I> visited = new() { start };
-		cellsToVisit.Enqueue(start);
-		Vector2I exit = default;
-		bool foundExit = false;
-
-		while (cellsToVisit.Count > 0)
-		{
-			Vector2I current = cellsToVisit.Dequeue();
-			if (current.X == width - 1 && !walls[current.Y, current.X])
-			{
-				exit = current;
-				foundExit = true;
-				break;
-			}
+			Vector2I current = path[path.Count - 1];
+			List<Vector2I> unvisited = new();
 
 			foreach (Vector2I direction in Directions)
 			{
-				Vector2I neighbor = current + direction;
-				if (neighbor.X < 0 || neighbor.X >= width ||
-					neighbor.Y < 0 || neighbor.Y >= height ||
-					walls[neighbor.Y, neighbor.X] ||
-					!visited.Add(neighbor))
+				Vector2I next = current + direction * 2;
+				if (next.X > 0 && next.X < MazeWidth - 1 &&
+					next.Y > 0 && next.Y < MazeHeight - 1 &&
+					walls[next.Y, next.X])
 				{
-					continue;
+					unvisited.Add(next);
 				}
-
-				previousCells[neighbor] = current;
-				cellsToVisit.Enqueue(neighbor);
 			}
-		}
 
-		List<Vector2I> route = new();
-		if (!foundExit)
-		{
-			GD.PushWarning("Could not identify a guaranteed safe route while placing hazards.");
-			return route;
-		}
-
-		for (Vector2I cell = exit; ; cell = previousCells[cell])
-		{
-			route.Add(cell);
-			if (cell == start)
+			if (unvisited.Count == 0)
 			{
-				break;
+				path.RemoveAt(path.Count - 1);
+				continue;
 			}
-		}
 
-		return route;
+			Vector2I chosen = unvisited[random.RandiRange(0, unvisited.Count - 1)];
+			Vector2I between = (current + chosen) / 2;
+			walls[between.Y, between.X] = false;
+			walls[chosen.Y, chosen.X] = false;
+			path.Add(chosen);
+		}
 	}
 
 	private RandomNumberGenerator CreateGenerationRandom()
@@ -454,8 +462,16 @@ public partial class Foreground : TileMapLayer
 		return random;
 	}
 
-	private static int NormalizeSize(int size)
+	//helper so we don't accidentally parse incorrectly
+	public void ForEachTile(Func<int,int,bool> func)
 	{
-		return Math.Max(size, 5);
+		for (int y = 0; y < MazeHeight; y++)
+		{
+			for (int x = 0; x < MazeWidth; x++)
+			{
+				func.Invoke(x,y);
+			}
+		}
 	}
+
 }
