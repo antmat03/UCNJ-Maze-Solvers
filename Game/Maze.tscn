@@ -4,11 +4,8 @@
 [ext_resource type="TileSet" uid="uid://dd81l2t7r6247" path="res://Game/MazeTileSet.tres" id="1_gghi0"]
 [ext_resource type="Script" uid="uid://ccn3ry7j3s1vv" path="res://Game/MazeInfoPanel.cs" id="3_info_panel"]
 [ext_resource type="Script" uid="uid://t2dqssxpc82r" path="res://Game/AStarOverlay.cs" id="3_ptags"]
-[ext_resource type="Script" uid="uid://jil5n17ewije" path="res://Game/agent/DijkstraAgent.cs" id="6_dijkstra_agent"]
 [ext_resource type="Script" uid="uid://1li4w7vna71c" path="res://Game/agent/AStarAgent.cs" id="7_astar_agent"]
-[ext_resource type="Texture2D" uid="uid://dvu328ah8j7q0" path="res://resources/temp_health.tres" id="9_5bave"]
-[ext_resource type="Script" uid="uid://bfuvnmr6vif55" path="res://UI/HealthBar.cs" id="10_qmq8b"]
-[ext_resource type="Script" uid="uid://3c7l8degdb2j" path="res://Game/agent/OtherAStarAgent.cs" id="11_hj36h"]
+[ext_resource type="PackedScene" uid="uid://mueel3d3okxp" path="res://Game/UIAgentInfo.tscn" id="8_odgr7"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_info_panel"]
 bg_color = Color(0.055, 0.075, 0.11, 0.96)
@@ -31,37 +28,34 @@ visibility_layer = 2
 z_index = -1
 tile_set = ExtResource("1_gghi0")
 
-[node name="foreground" type="TileMapLayer" parent="." unique_id=1168388414 node_paths=PackedStringArray("_aOverlay", "ItemLayer")]
+[node name="MainMaze" type="TileMapLayer" parent="." unique_id=1168388414 node_paths=PackedStringArray("Agents", "ItemLayer")]
+unique_name_in_owner = true
 visibility_layer = 2
 z_index = -2
 tile_map_data = PackedByteArray("AAAAAAAAAgAAAAAAAQADAAAAAgAAAAAAAQAEAAAAAgAAAAAAAQAFAAAAAgAAAAAAAQAGAAAAAgAAAAAAAQACAAAAAgAAAAAAAQAHAAAAAgAAAAAAAQAIAAAAAgAAAAAAAQAJAAAAAgAAAAAAAQAKAAAAAgAAAAAAAQALAAAAAgAAAAAAAQAMAAAAAgAAAAAAAQANAAAAAgAAAAAAAQAOAAAAAgAAAAAAAQAPAAAAAgAAAAAAAQAAAAEAAgAAAAAAAQAAAAIAAgAAAAAAAQAAAAMAAgAAAAAAAQAAAAQAAgAAAAAAAQAAAAUAAgAAAAAAAQAAAAYAAgAAAAAAAQAAAAcAAgAAAAAAAQAAAAgAAgAAAAAAAQAAAAkAAgAAAAAAAQAAAAoAAgAAAAAAAQAAAAsAAgAAAAAAAQAAAAwAAgAAAAAAAQAAAA0AAgAAAAAAAQAAAA4AAgAAAAAAAQAAAA8AAgAAAAAAAQABAAwAAgAAAAAAAQABAA0AAgAAAAAAAQABAA4AAgAAAAAAAQABAA8AAgAAAAAAAQACAAIAAgAAAAAAAQACAAQAAgAAAAAAAQACAAUAAgAAAAAAAQACAAgAAgAAAAAAAQACAAkAAgAAAAAAAQACAAoAAgAAAAAAAQACAAwAAgAAAAAAAQACAA0AAgAAAAAAAQACAA4AAgAAAAAAAQACAA8AAgAAAAAAAQADAAIAAgAAAAAAAQADAAMAAgAAAAAAAQADAAQAAgAAAAAAAQADAAUAAgAAAAAAAQADAAgAAgAAAAAAAQADAAkAAgAAAAAAAQADAAoAAgAAAAAAAQADAAwAAgAAAAAAAQADAA0AAgAAAAAAAQADAA4AAgAAAAAAAQADAA8AAgAAAAAAAQAEAAUAAgAAAAAAAQAEAAoAAgAAAAAAAQAEAAwAAgAAAAAAAQAEAA0AAgAAAAAAAQAEAA4AAgAAAAAAAQAEAA8AAgAAAAAAAQAFAAIAAgAAAAAAAQAFAAQAAgAAAAAAAQAFAAkAAgAAAAAAAQAFAAoAAgAAAAAAAQAFAAwAAgAAAAAAAQAFAA0AAgAAAAAAAQAFAA4AAgAAAAAAAQAFAA8AAgAAAAAAAQAGAAIAAgAAAAAAAQAGAAMAAgAAAAAAAQAGAAQAAgAAAAAAAQAGAAUAAgAAAAAAAQAGAAcAAgAAAAAAAQAGAAkAAgAAAAAAAQAGAAoAAgAAAAAAAQAGAAwAAgAAAAAAAQAGAA0AAgAAAAAAAQAGAA4AAgAAAAAAAQAGAA8AAgAAAAAAAQAHAAIAAgAAAAAAAQAHAAcAAgAAAAAAAQAHAAgAAgAAAAAAAQAHAAwAAgAAAAAAAQAHAA0AAgAAAAAAAQAHAA4AAgAAAAAAAQAHAA8AAgAAAAAAAQAIAAIAAgAAAAAAAQAIAAMAAgAAAAAAAQAIAAQAAgAAAAAAAQAIAAUAAgAAAAAAAQAIAAYAAgAAAAAAAQAIAAgAAgAAAAAAAQAIAAkAAgAAAAAAAQAIAAoAAgAAAAAAAQAIAAwAAgAAAAAAAQAIAA0AAgAAAAAAAQAIAA4AAgAAAAAAAQAIAA8AAgAAAAAAAQAJAAYAAgAAAAAAAQAJAAgAAgAAAAAAAQAJAAoAAgAAAAAAAQAJAAwAAgAAAAAAAQAJAA0AAgAAAAAAAQAJAA4AAgAAAAAAAQAJAA8AAgAAAAAAAQAKAAEAAgAAAAAAAQAKAAIAAgAAAAAAAQAKAAMAAgAAAAAAAQAKAAQAAgAAAAAAAQAKAAUAAgAAAAAAAQAKAAYAAgAAAAAAAQAKAAgAAgAAAAAAAQAKAAoAAgAAAAAAAQAKAAwAAgAAAAAAAQAKAA0AAgAAAAAAAQAKAA4AAgAAAAAAAQAKAA8AAgAAAAAAAQALAAEAAgAAAAAAAQALAAIAAgAAAAAAAQALAAwAAgAAAAAAAQALAA0AAgAAAAAAAQALAA4AAgAAAAAAAQALAA8AAgAAAAAAAQAMAAEAAgAAAAAAAQAMAAIAAgAAAAAAAQAMAAMAAgAAAAAAAQAMAAQAAgAAAAAAAQAMAAUAAgAAAAAAAQAMAAYAAgAAAAAAAQAMAAcAAgAAAAAAAQAMAAgAAgAAAAAAAQAMAAkAAgAAAAAAAQAMAAoAAgAAAAAAAQAMAAwAAgAAAAAAAQAMAA0AAgAAAAAAAQAMAA4AAgAAAAAAAQAMAA8AAgAAAAAAAQANAAEAAgAAAAAAAQANAAIAAgAAAAAAAQANAAMAAgAAAAAAAQANAAQAAgAAAAAAAQANAAUAAgAAAAAAAQANAAYAAgAAAAAAAQANAAcAAgAAAAAAAQANAAgAAgAAAAAAAQANAAkAAgAAAAAAAQANAAoAAgAAAAAAAQANAAwAAgAAAAAAAQANAA0AAgAAAAAAAQANAA4AAgAAAAAAAQANAA8AAgAAAAAAAQAOAAEAAgAAAAAAAQAOAAIAAgAAAAAAAQAOAAMAAgAAAAAAAQAOAAQAAgAAAAAAAQAOAAUAAgAAAAAAAQAOAAYAAgAAAAAAAQAOAAcAAgAAAAAAAQAOAAgAAgAAAAAAAQAOAAkAAgAAAAAAAQAOAAoAAgAAAAAAAQAOAAsAAgAAAAAAAQAOAAwAAgAAAAAAAQAOAA0AAgAAAAAAAQAOAA4AAgAAAAAAAQAOAA8AAgAAAAAAAQAPAAEAAgAAAAAAAQAPAAIAAgAAAAAAAQAPAAMAAgAAAAAAAQAPAAQAAgAAAAAAAQAPAAUAAgAAAAAAAQAPAAYAAgAAAAAAAQAPAAcAAgAAAAAAAQAPAAgAAgAAAAAAAQAPAAkAAgAAAAAAAQAPAAoAAgAAAAAAAQAPAAsAAgAAAAAAAQAPAAwAAgAAAAAAAQAPAA0AAgAAAAAAAQAPAA4AAgAAAAAAAQAPAA8AAgAAAAAAAQACAAcAAgAAAAAAAQADAAcAAgAAAAAAAQAFAAcAAgAAAAAAAQABAAAAAgAAAAAAAQABAAEAAgAAAAAAAQABAAIAAgAAAAAAAQABAAMAAgAAAAAAAQABAAQAAgAAAAAAAQABAAUAAgAAAAAAAQABAAYAAgAAAAAAAQABAAkAAgAAAAAAAQABAAoAAgAAAAAAAQABAAsAAgAAAAAAAQAMAAsAAgAAAAAAAQALAAsAAgAAAAAAAQALAAoAAgAAAAAAAQAHAAoAAgAAAAAAAQAEAAsAAgAAAAAAAQADAAsAAgAAAAAAAQACAAsAAgAAAAAAAQAFAAsAAgAAAAAAAQAGAAsAAgAAAAAAAQAHAAsAAgAAAAAAAQAIAAsAAgAAAAAAAQAJAAsAAgAAAAAAAQAKAAsAAgAAAAAAAQANAAsAAgAAAAAAAQALAAkAAgAAAAAAAQAKAAkAAgAAAAAAAQAJAAkAAgAAAAAAAQAHAAkAAgAAAAAAAQAEAAgAAgAAAAAAAQABAAgAAgAAAAAAAQABAAcAAgAAAAAAAQACAAYAAgAAAAAAAQACAAEAAgAAAAAAAQADAAEAAgAAAAAAAQAEAAEAAgAAAAAAAQAEAAIAAgAAAAAAAQAIAAEAAgAAAAAAAQAHAAEAAgAAAAAAAQAGAAEAAgAAAAAAAQACAAMAAgAAAAAAAQADAAYAAgAAAAAAAQAEAAMAAgAAAAAAAQAEAAQAAgAAAAAAAQAEAAYAAgAAAAAAAQAEAAcAAgAAAAAAAQAEAAkAAgAAAAAAAQAFAAEAAgAAAAAAAQAFAAMAAgAAAAAAAQAFAAUAAgAAAAAAAQAFAAYAAgAAAAAAAQAFAAgAAgAAAAAAAQAGAAYAAgAAAAAAAQAGAAgAAgAAAAAAAQAHAAMAAgAAAAAAAQAHAAQAAgAAAAAAAQAHAAUAAgAAAAAAAQAHAAYAAgAAAAAAAQAIAAcAAgAAAAAAAQAJAAEAAgAAAAAAAQAJAAIAAgAAAAAAAQAJAAMAAgAAAAAAAQAJAAQAAgAAAAAAAQAJAAUAAgAAAAAAAQAJAAcAAgAAAAAAAQAKAAcAAgAAAAAAAQALAAMAAgAAAAAAAQALAAQAAgAAAAAAAQALAAUAAgAAAAAAAQALAAYAAgAAAAAAAQALAAcAAgAAAAAAAQALAAgAAgAAAAAAAQA=")
 tile_set = ExtResource("1_gghi0")
 script = ExtResource("1_evoqg")
-_aOverlay = NodePath("../AStarOverlay")
+Agents = [NodePath("../GoalAgent")]
 ItemLayer = NodePath("../foregroundoftheforeground")
 
-[node name="AStarOverlay" type="Node2D" parent="." unique_id=832645934 node_paths=PackedStringArray("Maze")]
+[node name="GoalAgent" type="Node2D" parent="." unique_id=108003925 node_paths=PackedStringArray("Maze", "AStarAlgo")]
+script = ExtResource("7_astar_agent")
+Maze = NodePath("../MainMaze")
+AStarAlgo = NodePath("AStar")
+
+[node name="AStar" type="Node2D" parent="GoalAgent" unique_id=832645934 node_paths=PackedStringArray("Maze")]
 visible = false
 top_level = true
 script = ExtResource("3_ptags")
-Maze = NodePath("../foreground")
+Maze = NodePath("../../MainMaze")
 
-[node name="AStarAgent" type="Node2D" parent="." unique_id=108003925 node_paths=PackedStringArray("Maze", "Overlay", "healthBar")]
-script = ExtResource("7_astar_agent")
-Maze = NodePath("../foreground")
-Overlay = NodePath("../AStarOverlay")
-healthBar = NodePath("../MazeInfoPanel/PanelContainer/HealthBar")
-
-[node name="DijkstraAgent" type="Node2D" parent="." unique_id=668187183]
-script = ExtResource("6_dijkstra_agent")
-SecondsPerCell = 0.03
-
-[node name="OtherAStarAgent" type="Node2D" parent="." unique_id=1489299539]
-script = ExtResource("11_hj36h")
-
-[node name="MazeInfoPanel" type="CanvasLayer" parent="." unique_id=589237939]
+[node name="MazeInfoPanel" type="CanvasLayer" parent="." unique_id=589237939 node_paths=PackedStringArray("Maze", "DimensionsLabel", "AlgorithmLabel", "SeedLabel")]
 layer = 10
 script = ExtResource("3_info_panel")
+Maze = NodePath("../MainMaze")
+DimensionsLabel = NodePath("PanelContainer/MarginContainer/ScrollContainer/Content/Dimensions")
+AlgorithmLabel = NodePath("PanelContainer/MarginContainer/ScrollContainer/Content/Generator")
+SeedLabel = NodePath("PanelContainer/MarginContainer/ScrollContainer/Content/Seed")
 
 [node name="ControlsHint" type="Label" parent="MazeInfoPanel" unique_id=881025718]
 custom_minimum_size = Vector2(705, 50)
@@ -83,16 +77,6 @@ offset_right = -16.0
 offset_bottom = 786.0
 grow_horizontal = 0
 theme_override_styles/panel = SubResource("StyleBoxFlat_info_panel")
-
-[node name="HealthBar" type="TextureProgressBar" parent="MazeInfoPanel/PanelContainer" unique_id=1929141732]
-custom_minimum_size = Vector2(400, 50)
-layout_mode = 2
-offset_transform_enabled = true
-offset_transform_position = Vector2(0, -50)
-max_value = 4.0
-value = 4.0
-texture_progress = ExtResource("9_5bave")
-script = ExtResource("10_qmq8b")
 
 [node name="MarginContainer" type="MarginContainer" parent="MazeInfoPanel/PanelContainer" unique_id=92736579]
 layout_mode = 2
@@ -144,94 +128,6 @@ text = "Generator: —"
 layout_mode = 2
 text = "Seed: —"
 
-[node name="DijkstraSeparator" type="HSeparator" parent="MazeInfoPanel/PanelContainer/MarginContainer/ScrollContainer/Content" unique_id=399104200]
+[node name="GoalAgentInfo" parent="MazeInfoPanel/PanelContainer/MarginContainer/ScrollContainer/Content" unique_id=1478419050 node_paths=PackedStringArray("Agent") instance=ExtResource("8_odgr7")]
 layout_mode = 2
-
-[node name="DijkstraHeading" type="Label" parent="MazeInfoPanel/PanelContainer/MarginContainer/ScrollContainer/Content" unique_id=142798179]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.75, 0.62, 1, 1)
-theme_override_font_sizes/font_size = 14
-text = "DIJKSTRA'S ALGORITHM AGENT"
-
-[node name="DijkstraLegend" type="Label" parent="MazeInfoPanel/PanelContainer/MarginContainer/ScrollContainer/Content" unique_id=1576111341]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.72, 0.77, 0.86, 1)
-text = "Blue: explored  |  Orange: frontier  |  Green: least-cost path"
-
-[node name="DijkstraStatus" type="Label" parent="MazeInfoPanel/PanelContainer/MarginContainer/ScrollContainer/Content" unique_id=329344059]
-layout_mode = 2
-text = "Status: —"
-
-[node name="DijkstraPosition" type="Label" parent="MazeInfoPanel/PanelContainer/MarginContainer/ScrollContainer/Content" unique_id=1027554370]
-layout_mode = 2
-text = "Position: —"
-
-[node name="DijkstraSteps" type="Label" parent="MazeInfoPanel/PanelContainer/MarginContainer/ScrollContainer/Content" unique_id=2039315475]
-layout_mode = 2
-text = "Steps: —"
-
-[node name="DijkstraScore" type="Label" parent="MazeInfoPanel/PanelContainer/MarginContainer/ScrollContainer/Content" unique_id=248698134]
-layout_mode = 2
-text = "Score: 0"
-
-[node name="DijkstraElapsed" type="Label" parent="MazeInfoPanel/PanelContainer/MarginContainer/ScrollContainer/Content" unique_id=978921907]
-layout_mode = 2
-text = "Elapsed: —"
-
-[node name="DijkstraPath" type="Label" parent="MazeInfoPanel/PanelContainer/MarginContainer/ScrollContainer/Content" unique_id=1289304542]
-layout_mode = 2
-text = "Least-cost route: —"
-
-[node name="DijkstraExplored" type="Label" parent="MazeInfoPanel/PanelContainer/MarginContainer/ScrollContainer/Content" unique_id=1102899808]
-layout_mode = 2
-text = "Cells explored: —"
-
-[node name="DijkstraSpeed" type="Label" parent="MazeInfoPanel/PanelContainer/MarginContainer/ScrollContainer/Content" unique_id=1041760982]
-layout_mode = 2
-text = "Step interval: —"
-
-[node name="AStarSeparator" type="HSeparator" parent="MazeInfoPanel/PanelContainer/MarginContainer/ScrollContainer/Content" unique_id=643772527]
-layout_mode = 2
-
-[node name="AStarHeading" type="Label" parent="MazeInfoPanel/PanelContainer/MarginContainer/ScrollContainer/Content" unique_id=1329134975]
-layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.4862745, 0, 1)
-theme_override_font_sizes/font_size = 14
-text = "A* ALGORITHM AGENT"
-
-[node name="AStarLegend" type="Label" parent="MazeInfoPanel/PanelContainer/MarginContainer/ScrollContainer/Content" unique_id=1096086134]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.72, 0.77, 0.86, 1)
-text = "Cyan: explored  |  Pink: frontier  |  Yellow: least-cost path"
-
-[node name="AStarStatus" type="Label" parent="MazeInfoPanel/PanelContainer/MarginContainer/ScrollContainer/Content" unique_id=1496278207]
-layout_mode = 2
-text = "Status: —"
-
-[node name="AStarPosition" type="Label" parent="MazeInfoPanel/PanelContainer/MarginContainer/ScrollContainer/Content" unique_id=1497493421]
-layout_mode = 2
-text = "Position: —"
-
-[node name="AStarSteps" type="Label" parent="MazeInfoPanel/PanelContainer/MarginContainer/ScrollContainer/Content" unique_id=336334847]
-layout_mode = 2
-text = "Steps: —"
-
-[node name="AStarScore" type="Label" parent="MazeInfoPanel/PanelContainer/MarginContainer/ScrollContainer/Content" unique_id=282101652]
-layout_mode = 2
-text = "Score: 0"
-
-[node name="AStarElapsed" type="Label" parent="MazeInfoPanel/PanelContainer/MarginContainer/ScrollContainer/Content" unique_id=1351465096]
-layout_mode = 2
-text = "Elapsed: —"
-
-[node name="AStarPath" type="Label" parent="MazeInfoPanel/PanelContainer/MarginContainer/ScrollContainer/Content" unique_id=268052241]
-layout_mode = 2
-text = "Least-cost route: —"
-
-[node name="AStarExplored" type="Label" parent="MazeInfoPanel/PanelContainer/MarginContainer/ScrollContainer/Content" unique_id=2119458877]
-layout_mode = 2
-text = "Cells explored: —"
-
-[node name="AStarSpeed" type="Label" parent="MazeInfoPanel/PanelContainer/MarginContainer/ScrollContainer/Content" unique_id=670348079]
-layout_mode = 2
-text = "Step interval: —"
+Agent = NodePath("../../../../../../GoalAgent")

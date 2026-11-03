@@ -13,9 +13,9 @@ script = ExtResource("1_p8ccj")
 StartSimButton = NodePath("PanelContainer/VBoxContainer/MainOptions/start")
 ExitButton = NodePath("PanelContainer/VBoxContainer/MainOptions/exit")
 RunSimButton = NodePath("PanelContainer/VBoxContainer/SetupOptions/RunSimulation")
-DijkstraCheckBox = NodePath("PanelContainer/VBoxContainer/SetupOptions/Dijkstra")
+DijkstraCheckBox = NodePath("")
 AStarCheckBox = NodePath("PanelContainer/VBoxContainer/SetupOptions/AStar")
-DeadEndFillingCheckBox = NodePath("PanelContainer/VBoxContainer/SetupOptions/DeadEndFilling")
+DeadEndFillingCheckBox = NodePath("")
 MazeAlgorithmOption = NodePath("PanelContainer/VBoxContainer/SetupOptions/MazeAlgorithm")
 MazeSizeSpinBox = NodePath("PanelContainer/VBoxContainer/SetupOptions/MazeSize")
 ExitCountSpinBox = NodePath("PanelContainer/VBoxContainer/SetupOptions/ExitCount/Count")
@@ -86,19 +86,10 @@ layout_mode = 2
 theme_override_colors/font_color = Color(0.6, 0.68, 0.79, 1)
 text = "OMNISCIENT AGENTS"
 
-[node name="Dijkstra" type="CheckBox" parent="PanelContainer/VBoxContainer/SetupOptions" unique_id=1528403753]
-layout_mode = 2
-text = "Dijkstra's algorithm agent"
-
 [node name="AStar" type="CheckBox" parent="PanelContainer/VBoxContainer/SetupOptions" unique_id=189615326]
 layout_mode = 2
 button_pressed = true
 text = "A* algorithm agent"
-
-[node name="DeadEndFilling" type="CheckBox" parent="PanelContainer/VBoxContainer/SetupOptions" unique_id=504349120]
-layout_mode = 2
-button_pressed = true
-text = "Other A* agent"
 
 [node name="GeneratorSettingsLabel" type="Label" parent="PanelContainer/VBoxContainer/SetupOptions" unique_id=499887130]
 layout_mode = 2

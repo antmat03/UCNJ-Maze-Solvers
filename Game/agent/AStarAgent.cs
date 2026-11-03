@@ -15,8 +15,8 @@ public partial class AStarAgent : Node2D
 
     [Export]
 	public required Foreground Maze;
-    [Export]
-	public required AStarOverlay Overlay;
+	[Export]
+	public required AStarOverlay AStarAlgo;
 	public Godot.Collections.Array<Vector2I> Path {get; private set;} = new();
 	public int PathIndex {get; private set;}          // index in _path of the cell we are currently standing on
 	public Vector2I CurrentCell;
@@ -47,9 +47,10 @@ public partial class AStarAgent : Node2D
     [Export]
     public HealthBar healthBar;
 
+	
+
 	public override void _Ready()
 	{
-        healthBar.Value = health;
         //calls StartRun once maze and astar overlay exists
 		CallDeferred(MethodName.StartRun);
 	}
@@ -87,13 +88,13 @@ public partial class AStarAgent : Node2D
 	public bool Replan()
 	{
         //TODO: if adding more exit cells, iterate throught them all
-		Path = Overlay.GeneratePath(CurrentCell, Maze.ExitCells[0]);
+		Path = AStarAlgo.GeneratePath(CurrentCell, Maze.ExitCells[0]);
 		PathIndex = 0; // _path[0] is the cell we're standing on
 
-		if (Overlay != null)
+		if (AStarAlgo != null)
 		{
-			Overlay.Path = Path;
-			Overlay.QueueRedraw();
+			AStarAlgo.Path = Path;
+			AStarAlgo.QueueRedraw();
 		}
 
 		if (Path.Count == 0)
@@ -133,7 +134,7 @@ public partial class AStarAgent : Node2D
             if (Maze.CoinCells.Contains(CurrentCell))
             {
                 GD.PushWarning("Moved to coin cell!");
-                Overlay.EatCoin(CurrentCell);
+                AStarAlgo.EatCoin(CurrentCell);
 				CoinsCollected += 1;
                 Replan();
             }
@@ -179,8 +180,8 @@ public partial class AStarAgent : Node2D
 		}
 
 		//update data collection values
-		WeightScore += Overlay.Grid.GetPointWeightScale(Path[nextIndex]);
-		GameScore += Overlay.GetGameScoreAt(Path[nextIndex]);
+		WeightScore += AStarAlgo.Grid.GetPointWeightScale(Path[nextIndex]);
+		GameScore += AStarAlgo.GetGameScoreAt(Path[nextIndex]);
 
 		_moveStart = CellToGlobalPosition(Path[PathIndex]);
 		_moveEnd = CellToGlobalPosition(Path[nextIndex]);

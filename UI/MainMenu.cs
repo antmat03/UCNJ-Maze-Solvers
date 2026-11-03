@@ -100,12 +100,13 @@ public partial class MainMenu : Control
 		MainOptions.Show();
 	}
 
+	//TODO: add buttons for agents
 	private void OnRunSimulationPressed()
 	{
 		_lastSetupSettings = new SetupSettings(
-			DijkstraCheckBox.ButtonPressed,
+			false,
 			AStarCheckBox.ButtonPressed,
-			DeadEndFillingCheckBox.ButtonPressed,
+			false,
 			MazeAlgorithmOption.Selected,
 			MazeSizeSpinBox.Value,
 			ExitCountSpinBox.Value,
@@ -142,7 +143,7 @@ public partial class MainMenu : Control
 		}
 
 		Node gameScene = mazeScene.Instantiate();
-		Foreground maze = gameScene.GetNode<Foreground>("foreground");
+		Foreground maze = gameScene.GetNode<Foreground>("MainMaze");
 		maze.SelectedAlgorithm = (Foreground.MazeAlgorithm)settings.MazeAlgorithmIndex;
 		int mazeSize = Mathf.RoundToInt((float)settings.MazeSize);
 		maze.MazeWidth = mazeSize;
@@ -154,9 +155,9 @@ public partial class MainMenu : Control
 		maze.UniqueCollectibles = settings.UniqueCollectibles;
 		maze.UniqueHazards = settings.UniqueHazards;
 
-		gameScene.GetNode<DijkstraAgent>("DijkstraAgent").RunInSimulation = settings.Dijkstra;
-		gameScene.GetNode<AStarAgent>("AStarAgent").RunInSimulation = settings.AStar;
-		gameScene.GetNode<OtherAStarAgent>("OtherAStarAgent").RunInSimulation = settings.DeadEndFilling;
+		// gameScene.GetNode<DijkstraAgent>("DijkstraAgent").RunInSimulation = settings.Dijkstra;
+		gameScene.GetNode<AStarAgent>("GoalAgent").RunInSimulation = settings.AStar;
+		// gameScene.GetNode<OtherAStarAgent>("OtherAStarAgent").RunInSimulation = settings.DeadEndFilling;
 
 		SceneTree tree = (SceneTree)Engine.GetMainLoop();
 		return tree.ChangeSceneToNode(gameScene);
@@ -180,9 +181,9 @@ public partial class MainMenu : Control
 
 	private void RestoreSetupSettings(SetupSettings settings)
 	{
-		DijkstraCheckBox.ButtonPressed = settings.Dijkstra;
+		// DijkstraCheckBox.ButtonPressed = settings.Dijkstra;
 		AStarCheckBox.ButtonPressed = settings.AStar;
-		DeadEndFillingCheckBox.ButtonPressed = settings.DeadEndFilling;
+		// DeadEndFillingCheckBox.ButtonPressed = settings.DeadEndFilling;
 		MazeAlgorithmOption.Select(settings.MazeAlgorithmIndex);
 		MazeSizeSpinBox.Value = settings.MazeSize;
 		ExitCountSpinBox.Value = settings.ExitCount;

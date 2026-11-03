@@ -17,9 +17,11 @@ public partial class Foreground : TileMapLayer
 	public static bool IsPaused = false;
 
 
-	//our a star implementation
+	// //our a star implementation
+	// [Export]
+	// public required AStarOverlay _aOverlay;
 	[Export]
-	public required AStarOverlay _aOverlay;
+	public AStarAgent[] Agents;
 
 	//second tilemap representing items
 	[Export]
@@ -83,7 +85,11 @@ public partial class Foreground : TileMapLayer
 		InitItemLayer();
 		
 
-		_aOverlay.QueueRedraw();	//must call this after building grid/weight change/finding path
+		// _aOverlay.QueueRedraw();	//must call this after building grid/weight change/finding path
+		foreach(AStarAgent agent in Agents)
+		{
+			agent.AStarAlgo.QueueRedraw();
+		}
 	}
 	public void InitItemLayer()
 	{
@@ -165,7 +171,8 @@ public partial class Foreground : TileMapLayer
 		}
 		else if (keyEvent.Keycode == Key.S)
 		{
-			_aOverlay.Visible = !_aOverlay.Visible;
+			//TODO: implement for all agents
+			// _aOverlay.Visible = !_aOverlay.Visible;
 			Visible = !Visible;
 			GetViewport().SetInputAsHandled();
 		}

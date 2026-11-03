@@ -23,7 +23,7 @@ public partial class OtherAStarAgent : Node2D
 	[Export(PropertyHint.Range, "0.005,0.1,0.005")]
 	public float SearchStepInterval { get; set; } = 0.01f;
 
-	public bool RunInSimulation { get; set; } = true;
+	public bool RunInSimulation { get; set; } = false;
 
 	private readonly List<Vector2I> _path = new();
 	private readonly HashSet<Vector2I> _frontierCells = new();
