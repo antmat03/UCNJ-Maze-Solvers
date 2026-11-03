@@ -76,6 +76,9 @@ public partial class Foreground : TileMapLayer
 	public bool isFloor(Vector2I cell) => GetCellAtlasCoords(cell) == FloorAtlasCell;
 	public bool isWall(Vector2I cell) => GetCellAtlasCoords(cell) == WallAtlasCell;
 
+	public bool IsShowingAgentPaths = true;
+	public bool IsShowingAgentGrids = false;
+
 	public override void _Ready()
 	{
 		// GeneratePrim();
@@ -171,9 +174,12 @@ public partial class Foreground : TileMapLayer
 		}
 		else if (keyEvent.Keycode == Key.S)
 		{
-			//TODO: implement for all agents
-			// _aOverlay.Visible = !_aOverlay.Visible;
-			Visible = !Visible;
+			IsShowingAgentPaths = !IsShowingAgentPaths;
+			foreach(AStarAgent agent in Agents)
+			{
+				agent.AStarAlgo.QueueRedraw();
+			}
+			// Visible = !Visible;
 			GetViewport().SetInputAsHandled();
 		}
 	}

@@ -44,18 +44,18 @@ Maze = NodePath("../MainMaze")
 AStarAlgo = NodePath("AStar")
 
 [node name="AStar" type="Node2D" parent="GoalAgent" unique_id=832645934 node_paths=PackedStringArray("Maze")]
-visible = false
 top_level = true
 script = ExtResource("3_ptags")
 Maze = NodePath("../../MainMaze")
 
-[node name="MazeInfoPanel" type="CanvasLayer" parent="." unique_id=589237939 node_paths=PackedStringArray("Maze", "DimensionsLabel", "AlgorithmLabel", "SeedLabel")]
+[node name="MazeInfoPanel" type="CanvasLayer" parent="." unique_id=589237939 node_paths=PackedStringArray("Maze", "DimensionsLabel", "AlgorithmLabel", "SeedLabel", "PathLabel")]
 layer = 10
 script = ExtResource("3_info_panel")
 Maze = NodePath("../MainMaze")
-DimensionsLabel = NodePath("PanelContainer/MarginContainer/ScrollContainer/Content/Dimensions")
-AlgorithmLabel = NodePath("PanelContainer/MarginContainer/ScrollContainer/Content/Generator")
-SeedLabel = NodePath("PanelContainer/MarginContainer/ScrollContainer/Content/Seed")
+DimensionsLabel = NodePath("PanelContainer/MarginContainer/ScrollContainer/Content/HBoxContainer/Dimensions")
+AlgorithmLabel = NodePath("PanelContainer/MarginContainer/ScrollContainer/Content/HBoxContainer/Generator")
+SeedLabel = NodePath("PanelContainer/MarginContainer/ScrollContainer/Content/HBoxContainer/Seed")
+PathLabel = NodePath("PanelContainer/MarginContainer/ScrollContainer/Content/ShowingPathsLabel")
 
 [node name="ControlsHint" type="Label" parent="MazeInfoPanel" unique_id=881025718]
 custom_minimum_size = Vector2(705, 50)
@@ -116,17 +116,24 @@ theme_override_colors/font_color = Color(0.45, 0.95, 0.72, 1)
 theme_override_font_sizes/font_size = 14
 text = "MAZE"
 
-[node name="Dimensions" type="Label" parent="MazeInfoPanel/PanelContainer/MarginContainer/ScrollContainer/Content" unique_id=2061951188]
+[node name="HBoxContainer" type="HBoxContainer" parent="MazeInfoPanel/PanelContainer/MarginContainer/ScrollContainer/Content" unique_id=1471011383]
+layout_mode = 2
+
+[node name="Dimensions" type="Label" parent="MazeInfoPanel/PanelContainer/MarginContainer/ScrollContainer/Content/HBoxContainer" unique_id=2061951188]
 layout_mode = 2
 text = "Dimensions: —"
 
-[node name="Generator" type="Label" parent="MazeInfoPanel/PanelContainer/MarginContainer/ScrollContainer/Content" unique_id=38395202]
+[node name="Generator" type="Label" parent="MazeInfoPanel/PanelContainer/MarginContainer/ScrollContainer/Content/HBoxContainer" unique_id=38395202]
 layout_mode = 2
 text = "Generator: —"
 
-[node name="Seed" type="Label" parent="MazeInfoPanel/PanelContainer/MarginContainer/ScrollContainer/Content" unique_id=2111139113]
+[node name="Seed" type="Label" parent="MazeInfoPanel/PanelContainer/MarginContainer/ScrollContainer/Content/HBoxContainer" unique_id=2111139113]
 layout_mode = 2
 text = "Seed: —"
+
+[node name="ShowingPathsLabel" type="Label" parent="MazeInfoPanel/PanelContainer/MarginContainer/ScrollContainer/Content" unique_id=227399955]
+layout_mode = 2
+text = "Showing Paths : ----"
 
 [node name="GoalAgentInfo" parent="MazeInfoPanel/PanelContainer/MarginContainer/ScrollContainer/Content" unique_id=1478419050 node_paths=PackedStringArray("Agent") instance=ExtResource("8_odgr7")]
 layout_mode = 2

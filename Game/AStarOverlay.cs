@@ -8,7 +8,16 @@ public partial class AStarOverlay : Node2D
 	[Export] public Color WallColor = new(0.4f, 0.4f, 0.4f);
 	[Export] public Color FloorColor = new(0.2f, 0.8f, 0.3f);
 	[Export] public Color HeavyColor = new(0.9f, 0.15f, 0.15f);
-	[Export] public Color PathColor = new(1f, 1f, 0f);
+	// [Export] public Color PathColor = new(1f, 1f, 0f);
+	[Export(PropertyHint.Range, "0,1")] public float Alpha = 0.6f;
+
+    [Export]
+	public required Foreground Maze;
+
+    public required AStarAgent Agent;
+
+
+    [ExportGroup("Weights")]
 	[Export] public float MaxWeight = 100f;       // weight that maps to full HeavyColor
 
     [Export]
@@ -19,20 +28,18 @@ public partial class AStarOverlay : Node2D
     [Export]
     public float SpikeWeight = 100f;
 
+    [ExportSubgroup("Score Weights")]
     [Export]
     public float CoinGameScore = 10f;
 
     [Export]
     public float SpikeGameScore = -10f;
 
-	[Export(PropertyHint.Range, "0,1")] public float Alpha = 0.6f;
-
+    
 	public Array<Vector2I> Path { get; set; }
 
     public AStarGrid2D Grid;
 
-    [Export]
-	public required Foreground Maze;
 
 
     public Array<Vector2I> GeneratePath(Vector2I from, Vector2I to) => Grid.GetIdPath(from, to);
@@ -45,6 +52,8 @@ public partial class AStarOverlay : Node2D
             
         //     Visible = val;
         // };		
+
+        Agent = GetParent<AStarAgent>();
         
         //init a star grid
         Grid = new AStarGrid2D
@@ -66,37 +75,46 @@ public partial class AStarOverlay : Node2D
 
         UpdateAllWeights();
 
+        Path = GeneratePath(Maze.StartCell, Maze.ExitCells[0]);
+
         QueueRedraw();
     }
 
 	public override void _Draw()
 	{
-		if (Grid == null) return;
-
-		Vector2 tileSize = Maze.TileSet.TileSize;
-		Rect2I region = Grid.Region;
-        ForEachTile((int x, int y) =>
+        
+		// if (Grid == null) return;
+        if(Grid != null && Maze.IsShowingAgentGrids)
         {
-            Vector2I cell = new(x, y);
-            Color color;
-            color = Grid.IsPointSolid(cell) ? WallColor : GetWeightedTileColor(cell);
+            Vector2 tileSize = Maze.TileSet.TileSize;
+            Rect2I region = Grid.Region;
+            ForEachTile((int x, int y) =>
+            {
+                Vector2I cell = new(x, y);
+                Color color;
+                color = Grid.IsPointSolid(cell) ? WallColor : GetWeightedTileColor(cell);
 
-            color.A = Alpha;
-            DrawRect(new Rect2(new Vector2(x, y) * tileSize, tileSize), color);
+                color.A = Alpha;
+                DrawRect(new Rect2(new Vector2(x, y) * tileSize, tileSize), color);
 
-            return true;
-        });
-
-        if(Path == null) return;
-
-        Array<Vector2> pathPoints = new();
-        foreach(Vector2I tile in Path)
-        {
-            pathPoints.Add((tile + new Vector2(0.5f, 0.5f)) * tileSize);
+                return true;
+            });
         }
 
+		// if(Path == null) return;
+        if(Path != null && Maze.IsShowingAgentPaths){
+            Vector2 tileSize = Maze.TileSet.TileSize;
+            Array<Vector2> pathPoints = new();
+            foreach(Vector2I tile in Path)
+            {
+                pathPoints.Add((tile + new Vector2(0.5f, 0.5f)) * tileSize);
+            }
 
-        DrawPolyline(pathPoints.ToArray<Vector2>(), PathColor, 3f);
+
+            //Draw Path
+            DrawPolyline(pathPoints.ToArray<Vector2>(), Agent.AgentColor, 3f);
+
+        }
     }
 
     //sets weights for all floor tiles

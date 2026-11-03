@@ -10,6 +10,8 @@ public partial class MazeInfoPanel : CanvasLayer
 	public Label AlgorithmLabel ;
 	[Export]
 	public Label SeedLabel ;
+	[Export]
+	public Label PathLabel;
 	public override void _Ready()
 	{
 		
@@ -28,6 +30,9 @@ public partial class MazeInfoPanel : CanvasLayer
 		SeedLabel.Text = Maze.Seed == 0
 			? $"Seed: Random ({Maze.GenerationSeed})"
 			: $"Seed: {Maze.GenerationSeed}";
+		SetStatus(PathLabel, 
+		Maze.IsShowingAgentPaths ? "Showing Agent Paths: TRUE" : "Showing Agent Paths : FALSE", 
+		Maze.IsShowingAgentPaths ? Colors.Green : Colors.Red);
 	}
 
 	private static void SetStatus(Label label, string text, Color color)
