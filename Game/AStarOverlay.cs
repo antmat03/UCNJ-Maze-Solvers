@@ -21,12 +21,12 @@ public partial class AStarOverlay : Node2D
 	[Export] public float MaxWeight = 100f;       // weight that maps to full HeavyColor
 
     [Export]
-    public float CoinWeight = 1f;
+    public float CoinWeight = 15f;
     
     [Export]
     public float FloorWeight = 50f;
     [Export]
-    public float SpikeWeight = 100f;
+    public float SpikeWeight = 80f;
 
     [ExportSubgroup("Score Weights")]
     [Export]

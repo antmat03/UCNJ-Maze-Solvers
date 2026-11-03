@@ -24,11 +24,16 @@ public partial class AStarAgent : Node2D
 	public bool ReachedExit;
 	public float WeightScore;
 	public float GameScore;
+	[Export]
 	public string AgentType = "Goal-Oriented";
 	public int StepsTaken { get; private set; }
 	public double ElapsedSeconds { get; private set; }
 	public bool IsRunning;
 	public bool RunInSimulation;
+
+	//true if current cell was processed
+	//useful for not infinitely dying to a spike or getting infinite points on a coin once you hit the tile once
+	private bool _processedCell = false;
 
     private int _health = 4;
 
@@ -133,16 +138,16 @@ public partial class AStarAgent : Node2D
             //stepped on coin cell
             if (Maze.CoinCells.Contains(CurrentCell))
             {
-                GD.PushWarning("Moved to coin cell!");
-                AStarAlgo.EatCoin(CurrentCell);
+                // GD.PushWarning("Moved to coin cell!");
+                // AStarAlgo.EatCoin(CurrentCell);
 				CoinsCollected += 1;
                 Replan();
             }
             //stepped on spike cell
             if (Maze.SpikeCells.Contains(CurrentCell))
             {
-                GD.PushWarning("Moved to spike cell!");
-                Maze.SpikeCells.Remove(CurrentCell);  //TODO: temp, remove!
+                // GD.PushWarning("Moved to spike cell!");
+                // Maze.SpikeCells.Remove(CurrentCell);  //TODO: temp, remove!
                 health -= 1;
                 Replan();
             }
@@ -193,6 +198,16 @@ public partial class AStarAgent : Node2D
 	private Vector2 CellToGlobalPosition(Vector2I cell)
 	{
 		return Maze.ToGlobal(Maze.MapToLocal(cell));
+	}
+
+	public void SetWeights(MainMenu.Weights weights)
+	{
+		AStarAlgo.CoinWeight = weights.Coin;
+		AStarAlgo.FloorWeight= weights.Floor;
+		AStarAlgo.SpikeWeight= weights.Hazard;
+		// AStarAlgo.CoinWeight = (float)selector.CoinBox.Value;
+		// AStarAlgo.FloorWeight= (float)selector.FloorBox.Value;
+		// AStarAlgo.SpikeWeight= (float)selector.HazardBox.Value;
 	}
 
 	public ResearchData packData()

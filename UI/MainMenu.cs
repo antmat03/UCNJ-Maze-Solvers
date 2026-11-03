@@ -3,6 +3,16 @@ using System;
 
 public partial class MainMenu : Control
 {
+	public struct Weights(float c, float f, float h)
+	{
+		public float Coin = c;
+		public float Floor = f ;
+		public float Hazard = h;
+		public static Weights from(AgentWeightsSelector selector)
+		{
+			return new Weights((float)selector.CoinBox.Value, (float)selector.FloorBox.Value, (float)selector.HazardBox.Value);
+		}
+	}
 	private sealed record SetupSettings(
 		bool Dijkstra,
 		bool AStar,
@@ -13,23 +23,30 @@ public partial class MainMenu : Control
 		double HazardCount,
 		double CoinCount,
 		bool UniqueCollectibles,
-		bool UniqueHazards);
+		bool UniqueHazards,
+		Weights GoalWeights,
+		Weights CollectorWeights,
+		Weights CautiousWeights,
+		float SpeedInterval);
 
 	private static SetupSettings _lastSetupSettings;
 	private static bool _returnToSetupOnNextOpen;
+	[ExportGroup("Weight UIs")]
 
+	public static AgentWeightsSelector GoalSelector;
+	public static AgentWeightsSelector CollectorSelector;
+	public static AgentWeightsSelector CautiousSelector;
+
+	[ExportGroup("Other UI Refs")]
 	[Export]
 	public Button StartSimButton;	//opens the sim options
 	[Export]
 	public Button ExitButton;
 	[Export]
 	public Button RunSimButton;	//starts the sim
-	[Export]
-	public CheckBox DijkstraCheckBox;
+
 	[Export]
 	public CheckBox AStarCheckBox;
-	[Export]
-	public CheckBox DeadEndFillingCheckBox;
 	[Export]
 	public OptionButton MazeAlgorithmOption;
 	[Export]
@@ -48,6 +65,8 @@ public partial class MainMenu : Control
 	public Control MainOptions;
 	[Export]
 	public Control SetupOptions;
+	[Export]
+	public SpinBox SpeedIntervalBox;
 
 	public override void _Ready()
 	{
@@ -69,6 +88,11 @@ public partial class MainMenu : Control
 		// _uniqueCollectiblesCheckBox = GetNode<CheckBox>("PanelContainer/VBoxContainer/SetupOptions/UniqueCollectibles");
 		// _uniqueHazardsCheckBox = GetNode<CheckBox>("PanelContainer/VBoxContainer/SetupOptions/UniqueHazards");
 		// _selectionErrorLabel = GetNode<Label>("PanelContainer/VBoxContainer/SetupOptions/SelectionError");
+
+		//hate this
+		GoalSelector = GetNode<AgentWeightsSelector>("PanelContainer/VBoxContainer/SetupOptions/Weights/GoalAgentWeights");
+		CollectorSelector = GetNode<AgentWeightsSelector>("PanelContainer/VBoxContainer/SetupOptions/Weights/CollectorAgentWeights");
+		CautiousSelector= GetNode<AgentWeightsSelector>("PanelContainer/VBoxContainer/SetupOptions/Weights/CautiousAgentWeights");
 
 		MazeAlgorithmOption.AddItem("Randomized Prim", (int)Foreground.MazeAlgorithm.RandomizedPrim);
 		MazeAlgorithmOption.AddItem("Depth-first search", (int)Foreground.MazeAlgorithm.DepthFirstSearch);
@@ -105,7 +129,7 @@ public partial class MainMenu : Control
 	{
 		_lastSetupSettings = new SetupSettings(
 			false,
-			AStarCheckBox.ButtonPressed,
+			true,
 			false,
 			MazeAlgorithmOption.Selected,
 			MazeSizeSpinBox.Value,
@@ -113,7 +137,11 @@ public partial class MainMenu : Control
 			HazardCountSpinBox.Value,
 			CoinCountSpinBox.Value,
 			UniqueCollectiblesCheckBox.ButtonPressed,
-			UniqueHazardsCheckBox.ButtonPressed);
+			UniqueHazardsCheckBox.ButtonPressed,
+			Weights.from(GoalSelector),
+			Weights.from(CollectorSelector),
+			Weights.from(CautiousSelector),
+			(float)SpeedIntervalBox.Value);
 
 		Error error = StartSimulation(_lastSetupSettings, 0);
 		if (error != Error.Ok)
@@ -156,8 +184,18 @@ public partial class MainMenu : Control
 		maze.UniqueHazards = settings.UniqueHazards;
 
 		// gameScene.GetNode<DijkstraAgent>("DijkstraAgent").RunInSimulation = settings.Dijkstra;
-		gameScene.GetNode<AStarAgent>("GoalAgent").RunInSimulation = settings.AStar;
+		// gameScene.GetNode<AStarAgent>("GoalAgent").RunInSimulation = settings.AStar;
 		// gameScene.GetNode<OtherAStarAgent>("OtherAStarAgent").RunInSimulation = settings.DeadEndFilling;
+		AStarAgent goal = gameScene.GetNode<AStarAgent>("GoalAgent");
+		AStarAgent collector = gameScene.GetNode<AStarAgent>("CollectorAgent");
+		AStarAgent cautious = gameScene.GetNode<AStarAgent>("CautiousAgent");
+
+		goal.SetWeights(settings.GoalWeights);
+		goal.SecondsPerCell = settings.SpeedInterval;
+		collector.SetWeights(settings.CollectorWeights);
+		collector.SecondsPerCell = settings.SpeedInterval;
+		cautious.SetWeights(settings.CautiousWeights);
+		cautious.SecondsPerCell = settings.SpeedInterval;
 
 		SceneTree tree = (SceneTree)Engine.GetMainLoop();
 		return tree.ChangeSceneToNode(gameScene);
@@ -182,7 +220,7 @@ public partial class MainMenu : Control
 	private void RestoreSetupSettings(SetupSettings settings)
 	{
 		// DijkstraCheckBox.ButtonPressed = settings.Dijkstra;
-		AStarCheckBox.ButtonPressed = settings.AStar;
+		// AStarCheckBox.ButtonPressed = settings.AStar;
 		// DeadEndFillingCheckBox.ButtonPressed = settings.DeadEndFilling;
 		MazeAlgorithmOption.Select(settings.MazeAlgorithmIndex);
 		MazeSizeSpinBox.Value = settings.MazeSize;
@@ -191,6 +229,10 @@ public partial class MainMenu : Control
 		CoinCountSpinBox.Value = settings.CoinCount;
 		UniqueCollectiblesCheckBox.ButtonPressed = settings.UniqueCollectibles;
 		UniqueHazardsCheckBox.ButtonPressed = settings.UniqueHazards;
+		GoalSelector.Restore(settings.GoalWeights);
+		CollectorSelector.Restore(settings.CollectorWeights);
+		CautiousSelector.Restore(settings.CautiousWeights);
+		SpeedIntervalBox.Value = settings.SpeedInterval;
 	}
 
 	private void OnExitPressed()
@@ -210,4 +252,6 @@ public partial class MainMenu : Control
 	public override void _Process(double delta)
 	{
 	}
+
+	
 }

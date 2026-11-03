@@ -1,0 +1,63 @@
+[gd_scene format=3 uid="uid://rwq4um84fv66"]
+
+[ext_resource type="Script" uid="uid://r4d3aqys6w4" path="res://UI/AgentWeightsSelector.cs" id="1_5mjia"]
+
+[node name="GoalAgentWeights" type="VBoxContainer" unique_id=1619020105 node_paths=PackedStringArray("NameLabel", "CoinBox", "FloorBox", "HazardBox")]
+script = ExtResource("1_5mjia")
+NameLabel = NodePath("AgentName")
+CoinBox = NodePath("CoinWeight/Count")
+FloorBox = NodePath("FloorWeight/Count")
+HazardBox = NodePath("HazardWeight/Count")
+
+[node name="AgentName" type="Label" parent="." unique_id=1910971605]
+layout_mode = 2
+text = "AGENT"
+horizontal_alignment = 1
+
+[node name="CoinWeight" type="HBoxContainer" parent="." unique_id=733453792]
+layout_mode = 2
+alignment = 1
+
+[node name="Label" type="Label" parent="CoinWeight" unique_id=1122820674]
+layout_mode = 2
+text = "Coin Weight"
+
+[node name="Count" type="SpinBox" parent="CoinWeight" unique_id=1592087193]
+custom_minimum_size = Vector2(90, 0)
+layout_mode = 2
+min_value = 0.1
+step = 0.1
+value = 15.0
+allow_greater = true
+
+[node name="FloorWeight" type="HBoxContainer" parent="." unique_id=47686982]
+layout_mode = 2
+alignment = 1
+
+[node name="Label" type="Label" parent="FloorWeight" unique_id=1852002815]
+layout_mode = 2
+text = "Floor Weight"
+
+[node name="Count" type="SpinBox" parent="FloorWeight" unique_id=623970389]
+custom_minimum_size = Vector2(90, 0)
+layout_mode = 2
+min_value = 0.1
+step = 0.1
+value = 40.0
+allow_greater = true
+
+[node name="HazardWeight" type="HBoxContainer" parent="." unique_id=1702161288]
+layout_mode = 2
+alignment = 1
+
+[node name="Label" type="Label" parent="HazardWeight" unique_id=545320858]
+layout_mode = 2
+text = "Hazard Weight"
+
+[node name="Count" type="SpinBox" parent="HazardWeight" unique_id=1156509679]
+custom_minimum_size = Vector2(90, 0)
+layout_mode = 2
+min_value = 0.1
+step = 0.1
+value = 80.0
+allow_greater = true
