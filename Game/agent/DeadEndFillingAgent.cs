@@ -25,7 +25,7 @@ public partial class DeadEndFillingAgent : Node2D
 	[Export]
 	public Color AgentColor { get; set; } = Colors.Gold;
 
-	public bool RunInSimulation { get; set; } = true;
+	public bool RunInSimulation { get; set; } = false;
 
 	private readonly HashSet<Vector2I> _remainingCells = new();
 	private readonly HashSet<Vector2I> _filledCells = new();
